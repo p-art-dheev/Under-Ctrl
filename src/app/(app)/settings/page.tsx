@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { activeCourseId } from "@/lib/services/learning";
 import { runtimeInfo } from "@/lib/runtime";
 import { lastLiveStatus } from "@/lib/ai/gemma";
-import { Card, PageHeader, Pill, btn, btnGhost } from "@/components/ui";
+import { Card, PageHeader, Pill, btnGhost } from "@/components/ui";
 import { SmokeButton } from "@/components/dev-status";
 import { signOutAction, switchCourseAction } from "@/app/actions";
 import type { Course } from "@/lib/types";
@@ -38,7 +38,7 @@ export default async function SettingsPage() {
               </li>
             ))}
           </ul>
-          <form action={signOutAction} className="mt-4"><button className={btn}>Sign out</button></form>
+          <form action={signOutAction} className="mt-4"><button className={btnGhost}><LogOut size={15} aria-hidden /> Sign out</button></form>
         </Card>
         <Card>
           <h2 className="font-semibold">Developer status</h2>

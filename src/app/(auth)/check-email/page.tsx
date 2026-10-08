@@ -7,8 +7,8 @@ export default async function CheckEmail({ searchParams }: { searchParams: Promi
   const { email } = await searchParams;
   return (
     <div className="text-center">
-      <MailCheck className="mx-auto mb-3 text-brand" size={36} aria-hidden />
-      <h1 className="text-xl font-semibold">Check your email</h1>
+      <span className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand"><MailCheck size={28} aria-hidden /></span>
+      <h1 className="text-3xl font-semibold tracking-tight">Check your email</h1>
       <p className="mt-2 text-sm text-muted">
         We sent a confirmation link{email ? <> to <strong className="text-ink">{email}</strong></> : null}. Open it to activate your account, then sign in.
       </p>

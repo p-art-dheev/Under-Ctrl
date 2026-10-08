@@ -1,58 +1,69 @@
 @import "tailwindcss";
 
-/* SkillForge design tokens. Light is the default; dark follows the OS setting. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* SkillForge design tokens: a green palette with light and dark themes.
+   The theme follows the OS until the learner picks one (stored in localStorage). */
 :root {
-  --bg: #f6f5f1;
+  --bg: #f6faf7;
   --surface: #ffffff;
-  --surface-2: #f0eee8;
-  --ink: #17162a;
-  --muted: #615e73;
-  --line: #e3e0d8;
-  --brand: #4b3fd1;
+  --surface-2: #edf4ef;
+  --ink: #0c1f17;
+  --muted: #56695f;
+  --line: #dce7e0;
+  --brand: #0b8457;
+  --brand-strong: #086b47;
   --brand-ink: #ffffff;
-  --brand-soft: #ebe9fb;
-  --ember: #d9480f;
-  --ember-soft: #fdebe1;
-  --st-mastered: #18794e;
-  --st-mastered-soft: #e0f3ea;
-  --st-learning: #1d62c9;
-  --st-learning-soft: #e3edfb;
-  --st-available: #4b3fd1;
-  --st-available-soft: #ebe9fb;
-  --st-review: #b54708;
-  --st-review-soft: #fdf0d9;
-  --st-locked: #6f6d7c;
-  --st-locked-soft: #ecebe7;
-  --danger: #b42318;
-  --danger-soft: #fde8e6;
+  --brand-soft: #e1f4ea;
+  --accent: #a3e635;
+  --ember: #c2410c;
+  --ember-soft: #fdeee4;
+  --st-mastered: #15803d;
+  --st-mastered-soft: #dcfce7;
+  --st-learning: #1d4ed8;
+  --st-learning-soft: #e0eafe;
+  --st-available: #0e7490;
+  --st-available-soft: #dff5f9;
+  --st-review: #b45309;
+  --st-review-soft: #fef3c7;
+  --st-locked: #64748b;
+  --st-locked-soft: #eef1f4;
+  --danger: #b91c1c;
+  --danger-soft: #fde8e8;
+  --shadow: 0 1px 2px rgb(12 31 23 / 0.05), 0 1px 1px rgb(12 31 23 / 0.03);
+  --shadow-lg: 0 12px 32px -12px rgb(12 31 23 / 0.18);
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #111019;
-    --surface: #1a1925;
-    --surface-2: #232231;
-    --ink: #eeedf5;
-    --muted: #a5a2b8;
-    --line: #2f2d40;
-    --brand: #9d93ff;
-    --brand-ink: #14122b;
-    --brand-soft: #29264a;
-    --ember: #ff8a4c;
-    --ember-soft: #3a2318;
-    --st-mastered: #5fd3a0;
-    --st-mastered-soft: #15322a;
-    --st-learning: #7fb0ff;
-    --st-learning-soft: #172a47;
-    --st-available: #b1a9ff;
-    --st-available-soft: #29264a;
-    --st-review: #ffb454;
-    --st-review-soft: #3b2a12;
-    --st-locked: #9a98a8;
-    --st-locked-soft: #262532;
-    --danger: #ff8a80;
-    --danger-soft: #3d1b19;
-  }
+:root.dark {
+  --bg: #060f0b;
+  --surface: #0b1712;
+  --surface-2: #11211a;
+  --ink: #e5f2eb;
+  --muted: #8ea69a;
+  --line: #1b2e25;
+  --brand: #34d399;
+  --brand-strong: #6ee7b7;
+  --brand-ink: #03140d;
+  --brand-soft: #0d2c20;
+  --accent: #bef264;
+  --ember: #fb923c;
+  --ember-soft: #3a2113;
+  --st-mastered: #4ade80;
+  --st-mastered-soft: #0f2e1c;
+  --st-learning: #93b4ff;
+  --st-learning-soft: #15223f;
+  --st-available: #5ad8ef;
+  --st-available-soft: #0b2a31;
+  --st-review: #fbbf24;
+  --st-review-soft: #33260b;
+  --st-locked: #94a3b8;
+  --st-locked-soft: #17211d;
+  --danger: #f87171;
+  --danger-soft: #3a1414;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px -16px rgb(0 0 0 / 0.7);
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -65,6 +76,8 @@
   --color-brand: var(--brand);
   --color-brand-ink: var(--brand-ink);
   --color-brand-soft: var(--brand-soft);
+  --color-brand-strong: var(--brand-strong);
+  --color-accent: var(--accent);
   --color-ember: var(--ember);
   --color-ember-soft: var(--ember-soft);
   --color-mastered: var(--st-mastered);
@@ -80,12 +93,31 @@
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Bricolage Grotesque Variable", var(--font-geist-sans), ui-sans-serif, sans-serif;
+  --shadow-card: var(--shadow);
+  --shadow-float: var(--shadow-lg);
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+}
+
+h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
+
+::selection { background: color-mix(in oklab, var(--brand) 25%, transparent); }
+
+/* soft grid used behind hero sections */
+.sf-grid-bg {
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--line) 70%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--line) 70%, transparent) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 40%, transparent 100%);
+}
+.sf-glow {
+  background: radial-gradient(600px 300px at 50% -60px, color-mix(in oklab, var(--brand) 22%, transparent), transparent 70%);
 }
 
 :focus-visible {
@@ -137,3 +169,16 @@ body {
   .sf-skeleton, .sf-enter, .sf-fade, .sf-pop, .sf-bar, .sf-stagger > * { animation: none !important; }
   * { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+/* React Flow follows the theme (its stylesheet reads these variables) */
+:root .react-flow {
+  --xy-background-color: transparent;
+  --xy-controls-button-background-color: var(--surface);
+  --xy-controls-button-background-color-hover: var(--surface-2);
+  --xy-controls-button-color: var(--ink);
+  --xy-controls-button-color-hover: var(--ink);
+  --xy-controls-button-border-color: var(--line);
+  --xy-controls-box-shadow: var(--shadow-lg);
+  --xy-edge-stroke: var(--line);
+}
+:root .react-flow__controls { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }

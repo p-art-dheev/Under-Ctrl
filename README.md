@@ -91,7 +91,7 @@ flowchart TD
 
 | Category | Technologies |
 | --- | --- |
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, React Flow (`@xyflow/react`), Recharts, lucide-react, Geist font |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui-style components on Radix UI primitives, React Flow (`@xyflow/react`), Recharts, lucide-react, Geist and Bricolage Grotesque fonts; green light and dark themes |
 | Backend | Next.js server components and server actions; Zod validation of every form input and every model output |
 | Database | Supabase Postgres with row-level security; all privileged writes go through one `sf_commit` function |
 | AI / ML | Gemma 4 (`gemma-4-26b-a4b-it`) through the Gemini API, server-side only |
@@ -223,6 +223,8 @@ The 90-second script is in [docs/demo-script.md](docs/demo-script.md): a Python 
 | Zod | Input and model-output validation | MIT |
 | `@supabase/supabase-js`, `@supabase/ssr` | Auth and database client | MIT |
 | lucide-react | Icons | ISC |
+| shadcn/ui patterns, Radix UI primitives, class-variance-authority, clsx, tailwind-merge | UI components (written into `src/components/ui/`) | MIT |
+| Bricolage Grotesque (via `@fontsource-variable`) | Display font | SIL OFL 1.1 |
 | Geist | Font | SIL OFL 1.1 |
 | Vitest, tsx, ESLint | Tests, scripts, linting | MIT |
 

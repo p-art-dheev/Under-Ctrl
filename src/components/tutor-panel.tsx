@@ -33,7 +33,7 @@ export function TutorPanel({ courseId, skillId, messages }: { courseId: string; 
       setDraft(null);
     });
   return (
-    <div className="flex h-full flex-col rounded-2xl border border-line bg-surface">
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow)]">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
         <Bot size={18} className="text-brand" aria-hidden />
         <h2 className="font-semibold">Ask tutor</h2>

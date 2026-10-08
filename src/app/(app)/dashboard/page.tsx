@@ -1,23 +1,26 @@
 import Link from "next/link";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, BadgeCheck, BookCheck, Clock3, Compass, MessageSquareText, Sparkles, type LucideIcon } from "lucide-react";
 import { courseContext } from "@/lib/page-context";
 import { dashboardStats, nextAction, skillViews } from "@/lib/services/snapshot";
 import { graphSkills } from "@/lib/graph-view";
-import { Card, PageHeader, btn } from "@/components/ui";
+import { Card, PageHeader, Tooltip, btn } from "@/components/ui";
 import { MasteryHistory, WeeklyActivity } from "@/components/charts";
 import { SkillGraph } from "@/components/skill-graph";
 import { Timeline } from "@/components/timeline";
 
 export const metadata = { title: "Dashboard" };
 
-function Stat({ label, value, help }: { label: string; value: string; help: string }) {
+function Stat({ label, value, help, icon: Icon, tone = "brand" }: { label: string; value: string; help: string; icon: LucideIcon; tone?: "brand" | "mastered" | "learning" | "review" | "available" }) {
+  const toneCls = { brand: "bg-brand-soft text-brand", mastered: "bg-mastered-soft text-mastered", learning: "bg-learning-soft text-learning", review: "bg-review-soft text-review", available: "bg-available-soft text-available" }[tone];
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
-      <p className="flex items-center gap-1 text-xs font-medium text-muted">
-        {label}
-        <span title={help} aria-label={help}><Info size={12} aria-hidden /></span>
-      </p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+    <div className="group rounded-2xl border border-line bg-surface p-4 shadow-[var(--shadow)] transition-shadow hover:shadow-[var(--shadow-lg)]">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-medium text-muted">{label}</p>
+        <Tooltip content={help}>
+          <span className={`grid h-8 w-8 place-items-center rounded-lg ${toneCls}`} tabIndex={0} aria-label={help}><Icon size={16} aria-hidden /></span>
+        </Tooltip>
+      </div>
+      <p className="mt-2 font-display text-[1.7rem] font-semibold leading-none tracking-tight">{value}</p>
     </div>
   );
 }
@@ -47,14 +50,15 @@ export default async function Dashboard() {
   return (
     <>
       <PageHeader title="Dashboard" subtitle={snap.goal.goal_text} />
-      <Card className="mb-6 border-brand/30 bg-gradient-to-br from-brand-soft to-surface">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand">Recommended next</p>
-        <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
+      <Card className="relative mb-6 overflow-hidden border-brand/30 bg-gradient-to-br from-brand-soft via-surface to-surface">
+        <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand/15 blur-3xl" aria-hidden />
+        <p className="relative flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand"><Sparkles size={13} aria-hidden /> Recommended next</p>
+        <div className="relative mt-1 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold">{next.label}</h2>
+            <h2 className="text-2xl font-semibold">{next.label}</h2>
             <p className="mt-1 text-sm text-muted">{next.detail}</p>
           </div>
-          <Link href={next.href} className={btn}>Go <ArrowRight size={14} aria-hidden /></Link>
+          <Link href={next.href} className={`${btn} h-10 px-5`}>Continue <ArrowRight size={15} aria-hidden /></Link>
         </div>
         {next.why.length ? (
           <details className="mt-3 text-sm">
@@ -66,11 +70,11 @@ export default async function Dashboard() {
       </Card>
 
       <div className="sf-stagger mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Stat label="Skills assessed" value={`${stats.assessed} / ${stats.coreSkills}`} help="Core skills with at least one scored answer. Unassessed skills are not counted as failures." />
-        <Stat label="Skills mastered" value={`${stats.mastered}`} help="Score ≥ 80% with ≥ 3 answers, including 2 correct without hints." />
-        <Stat label="Activities completed" value={`${stats.lessonsCompleted}`} help="Lessons marked complete. Separate from mastery." />
-        <Stat label="Answers given" value={`${stats.answers}`} help="All graded answers (diagnostic, practice, checks, follow-ups)." />
-        <Stat label="Study time (7 days)" value={`${stats.studyMinutes7d} min`} help="Minutes a lesson page was open and visible, for lessons started in the last 7 days." />
+        <Stat icon={Compass} tone="available" label="Skills assessed" value={`${stats.assessed} / ${stats.coreSkills}`} help="Core skills with at least one scored answer. Unassessed skills are not counted as failures." />
+        <Stat icon={BadgeCheck} tone="mastered" label="Skills mastered" value={`${stats.mastered}`} help="Score ≥ 80% with ≥ 3 answers, including 2 correct without hints." />
+        <Stat icon={BookCheck} tone="learning" label="Activities completed" value={`${stats.lessonsCompleted}`} help="Lessons marked complete. Separate from mastery." />
+        <Stat icon={MessageSquareText} label="Answers given" value={`${stats.answers}`} help="All graded answers (diagnostic, practice, checks, follow-ups)." />
+        <Stat icon={Clock3} tone="review" label="Study time (7 days)" value={`${stats.studyMinutes7d} min`} help="Minutes a lesson page was open and visible, for lessons started in the last 7 days." />
       </div>
 
       <div className="mb-6 grid gap-6 lg:grid-cols-3">

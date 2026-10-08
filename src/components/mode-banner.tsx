@@ -6,7 +6,7 @@ export function ModeBanner() {
   const { ai, data } = runtimeInfo();
   if (!ai.fixture && data === "supabase") return null;
   return (
-    <div className="flex flex-wrap gap-x-6 gap-y-1 border-b border-line bg-ember-soft px-4 py-2 text-xs text-ember" role="status">
+    <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 border-b border-ember/15 bg-ember-soft/70 px-4 py-1.5 text-center text-xs text-ember" role="status">
       {ai.fixture ? (
         <span className="inline-flex items-center gap-1.5">
           <FlaskConical size={14} aria-hidden />

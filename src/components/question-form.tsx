@@ -79,7 +79,7 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
         const r = byQ.get(q.id);
         const a = answers[q.id] ?? {};
         return (
-          <fieldset key={q.id} className="rounded-2xl border border-line bg-surface p-5" disabled={done || pending}>
+          <fieldset key={q.id} className="rounded-2xl border border-line bg-surface p-5 shadow-[var(--shadow)]" disabled={done || pending}>
             <legend className="sr-only">Question {i + 1}</legend>
             <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted">
               <span>Question {i + 1} of {questions.length} · {q.skillTitle}</span>

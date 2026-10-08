@@ -1,24 +1,36 @@
 import type { ReactNode } from "react";
 import { CheckCircle2, CircleDashed, Lock, PlayCircle, RotateCcw, Sparkles } from "lucide-react";
 import type { DisplayState } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "./button";
+import { inputClass } from "./input";
+import { Card as ShadCard } from "./card";
 
-export const btn =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-ink shadow-sm transition hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
-export const btnGhost =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition hover:bg-surface-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
-export const input =
-  "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none";
+export { Button, buttonVariants } from "./button";
+export { Badge, badgeVariants } from "./badge";
+export { CardDescription, CardHeader, CardTitle } from "./card";
+export { Input, Textarea } from "./input";
+export { Label } from "./label";
+export { Tooltip } from "./tooltip";
+
+// Shared building blocks. The primitives are shadcn-style components in this
+// folder; the helpers below keep page code short.
+export const btn = buttonVariants();
+export const btnGhost = buttonVariants({ variant: "outline" });
+export const btnSoft = buttonVariants({ variant: "secondary" });
+export const input = inputClass;
 
 export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`rounded-2xl border border-line bg-surface p-5 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ${className}`}>{children}</section>;
+  return <ShadCard className={className}>{children}</ShadCard>;
 }
 
-export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: ReactNode; action?: ReactNode }) {
+export function PageHeader({ title, subtitle, action, eyebrow }: { title: string; subtitle?: ReactNode; action?: ReactNode; eyebrow?: ReactNode }) {
   return (
-    <header className="mb-6 flex flex-wrap items-end justify-between gap-3">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-        {subtitle ? <p className="mt-1 text-sm text-muted">{subtitle}</p> : null}
+    <header className="mb-7 flex flex-wrap items-end justify-between gap-3">
+      <div className="min-w-0">
+        {eyebrow ? <p className="mb-1 text-xs font-semibold uppercase tracking-[0.12em] text-brand">{eyebrow}</p> : null}
+        <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight">{title}</h1>
+        {subtitle ? <p className="mt-1.5 max-w-2xl text-sm text-muted">{subtitle}</p> : null}
       </div>
       {action}
     </header>
@@ -37,7 +49,7 @@ export function StateBadge({ state, label }: { state: DisplayState; label?: stri
   const m = STATE_META[state];
   const Icon = m.icon;
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium ${m.cls}`}>
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium", m.cls)}>
       <Icon size={12} aria-hidden /> {label ?? m.label}
     </span>
   );
