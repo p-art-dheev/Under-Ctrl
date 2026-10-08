@@ -76,6 +76,7 @@ Non-negotiables: real Supabase Auth, persistent DAG skill graph with stable IDs,
 | 2026-10-08 | Live Gemma quirks: code fences inside JSON strings, options referenced by text/letter, quoted numbers. Handled in `extractJson` and `normaliseQuestion`; invalid distractor tags are dropped instead of failing generation. |
 | 2026-10-08 | Seed script is `scripts/seed-demo.mts` (`.mts` because tsx emits CJS for `.ts`, which breaks top-level await). It uses fixture content on purpose so demos are repeatable. |
 | 2026-10-08 | Renamed SkillForge to Cognify. Env vars are now `COGNIFY_*`; `src/lib/env.ts` still reads the old `SKILLFORGE_*` names as a fallback. The migration file is now `20261008000000_cognify.sql` (same SQL, so projects that ran the old file need nothing). |
+| 2026-10-08 | Gemma leaves title/domain/summary null when it asks a clarification question (seen live for "Object Oriented Programming for interview"), so those fields are optional in `GoalInterpretation` and `startCourse` fills them from the goal text. Light theme is the default (no system option); dark mode uses neutral greys and keeps green for accents. |
 
 ## Open Items
 

@@ -114,7 +114,7 @@ export function OnboardingForm() {
           <AlertCircle size={16} className="mt-0.5 shrink-0" aria-hidden /> {state.error}
         </p>
       ) : null}
-      <Button size="lg" disabled={pending}>
+      <Button size="lg" disabled={pending} className="sf-shine-auto">
         {pending ? <><Loader2 size={16} className="animate-spin" aria-hidden /> Reading your goal…</> : <>{clarify ? "Continue" : "Build my course"} <ArrowRight size={16} aria-hidden /></>}
       </Button>
     </form>

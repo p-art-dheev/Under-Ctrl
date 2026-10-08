@@ -99,7 +99,7 @@ export default async function Home() {
               Describe what you want to learn. Cognify maps the skills it takes, teaches with cited sources, and reshapes your path when your answers reveal a gap.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <Link href="/signup" className={buttonVariants({ size: "lg" })}>
+              <Link href="/signup" className={buttonVariants({ size: "lg", className: "sf-shine-auto" })}>
                 Start learning free <ArrowRight size={16} aria-hidden />
               </Link>
               <a href="#how" className={buttonVariants({ variant: "outline", size: "lg" })}>See how it works</a>

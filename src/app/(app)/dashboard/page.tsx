@@ -50,7 +50,7 @@ export default async function Dashboard() {
   return (
     <>
       <PageHeader title="Dashboard" subtitle={snap.goal.goal_text} />
-      <Card className="relative mb-6 overflow-hidden border-brand/30 bg-gradient-to-br from-brand-soft via-surface to-surface">
+      <Card className="relative mb-6 overflow-hidden border-brand/30 bg-gradient-to-br from-brand-soft via-surface to-surface dark:border-line dark:from-surface-2">
         <div className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-brand/15 blur-3xl" aria-hidden />
         <p className="relative flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-brand"><Sparkles size={13} aria-hidden /> Recommended next</p>
         <div className="relative mt-1 flex flex-wrap items-center justify-between gap-3">
@@ -58,7 +58,7 @@ export default async function Dashboard() {
             <h2 className="text-2xl font-semibold">{next.label}</h2>
             <p className="mt-1 text-sm text-muted">{next.detail}</p>
           </div>
-          <Link href={next.href} className={`${btn} h-10 px-5`}>Continue <ArrowRight size={15} aria-hidden /></Link>
+          <Link href={next.href} className={`${btn} sf-shine-auto h-10 px-5`}>Continue <ArrowRight size={15} aria-hidden /></Link>
         </div>
         {next.why.length ? (
           <details className="mt-3 text-sm">

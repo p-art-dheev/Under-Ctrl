@@ -41,11 +41,11 @@ export function TutorPanel({ courseId, skillId, messages }: { courseId: string; 
       <div ref={scroller} className="flex-1 space-y-3 overflow-y-auto px-4 py-3 text-sm" style={{ maxHeight: 420 }} aria-live="polite">
         {messages.length === 0 ? <p className="text-muted">Stuck? Ask a question, or use a button below. The tutor gives hints before full solutions.</p> : null}
         {messages.map((m) => (
-          <div key={m.id} className={`sf-enter ${m.role === "learner" ? "ml-6 rounded-xl bg-brand-soft px-3 py-2" : "mr-2 rounded-xl bg-surface-2 px-3 py-2"}`}>
+          <div key={m.id} className={`sf-enter ${m.role === "learner" ? "ml-6 rounded-xl bg-brand-soft px-3 py-2 dark:bg-surface-2" : "mr-2 rounded-xl bg-surface-2 px-3 py-2"}`}>
             <Markdown text={m.content} />
           </div>
         ))}
-        {pending && draft ? <div className="sf-enter ml-6 rounded-xl bg-brand-soft px-3 py-2 opacity-80">{draft}</div> : null}
+        {pending && draft ? <div className="sf-enter ml-6 rounded-xl bg-brand-soft px-3 py-2 opacity-80 dark:bg-surface-2">{draft}</div> : null}
         {pending ? (
           <div className="sf-fade mr-2 inline-flex items-center gap-1 rounded-xl bg-surface-2 px-3 py-2.5" aria-label="Tutor is thinking">
             {[0, 150, 300].map((d) => <span key={d} className="h-1.5 w-1.5 rounded-full bg-muted motion-safe:animate-bounce" style={{ animationDelay: `${d}ms` }} />)}

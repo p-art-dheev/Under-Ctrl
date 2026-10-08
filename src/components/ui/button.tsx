@@ -8,7 +8,7 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-brand text-brand-ink shadow-[var(--shadow)] hover:bg-brand-strong dark:hover:bg-brand-strong",
+        default: "sf-shine bg-brand text-brand-ink shadow-[var(--shadow)] hover:bg-brand-strong dark:hover:bg-brand-strong",
         secondary: "bg-brand-soft text-brand hover:bg-brand-soft/70",
         outline: "border border-line bg-surface text-ink shadow-[var(--shadow)] hover:bg-surface-2",
         ghost: "text-ink hover:bg-surface-2",

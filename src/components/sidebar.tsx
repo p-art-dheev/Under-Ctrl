@@ -27,7 +27,7 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
           <span className="font-display text-[1.1rem] font-semibold tracking-tight">Cognify</span>
         </Link>
         {courseTitle ? (
-          <div className="mb-5 rounded-xl border border-brand/20 bg-gradient-to-br from-brand-soft to-transparent px-3 py-2.5">
+          <div className="mb-5 rounded-xl border border-brand/20 bg-gradient-to-br from-brand-soft to-transparent px-3 dark:border-line dark:from-surface-2 py-2.5">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand"><Target size={12} aria-hidden /> Active goal</p>
             <p className="mt-0.5 truncate text-sm font-medium" title={courseTitle}>{courseTitle}</p>
           </div>
@@ -41,7 +41,7 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
               aria-current={active(href) ? "page" : undefined}
               className={cn(
                 "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                active(href) ? "bg-brand-soft font-medium text-brand" : "text-muted hover:bg-surface-2 hover:text-ink",
+                active(href) ? "bg-brand-soft font-medium text-brand dark:bg-surface-2" : "text-muted hover:bg-surface-2 hover:text-ink",
               )}
             >
               {active(href) ? <span className="absolute -left-3 top-1.5 bottom-1.5 w-1 rounded-r-full bg-brand" aria-hidden /> : null}
@@ -75,7 +75,7 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
             key={href}
             href={href}
             aria-current={active(href) ? "page" : undefined}
-            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ${active(href) ? "bg-brand-soft font-medium text-brand" : "text-muted"}`}
+            className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm ${active(href) ? "bg-brand-soft font-medium text-brand dark:bg-surface-2" : "text-muted"}`}
           >
             <Icon size={16} aria-hidden /> {label}
           </Link>

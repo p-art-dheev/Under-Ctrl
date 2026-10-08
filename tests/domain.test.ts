@@ -390,3 +390,12 @@ describe("question schema synonyms", () => {
     expect([s.type, s.options, s.distractor_tags]).toEqual(["short", null, []]);
   });
 });
+
+describe("goal interpretation schema", () => {
+  it("accepts a clarification reply that leaves title, domain and summary null", async () => {
+    const { GoalInterpretation } = await import("@/lib/ai/schemas");
+    // Gemma's actual reply for "Object Oriented Programming for interview"
+    const g = GoalInterpretation.parse({ is_specific: false, clarification_question: "Which programming language?", title: null, domain: null, summary: null });
+    expect([g.is_specific, g.clarification_question, g.title]).toEqual([false, "Which programming language?", null]);
+  });
+});

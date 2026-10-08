@@ -3,7 +3,8 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Cognify design tokens: a green palette with light and dark themes.
-   The theme follows the OS until the learner picks one (stored in localStorage). */
+   Light is the default; dark applies only after the learner picks it (stored in
+   localStorage). Dark mode keeps surfaces neutral and saves green for accents. */
 :root {
   --bg: #f6faf7;
   --surface: #ffffff;
@@ -36,16 +37,16 @@
 }
 
 :root.dark {
-  --bg: #060f0b;
-  --surface: #0b1712;
-  --surface-2: #11211a;
-  --ink: #e5f2eb;
-  --muted: #8ea69a;
-  --line: #1b2e25;
+  --bg: #0b0c0d;
+  --surface: #131416;
+  --surface-2: #1b1d20;
+  --ink: #ececee;
+  --muted: #9a9ca3;
+  --line: #26282c;
   --brand: #34d399;
   --brand-strong: #6ee7b7;
   --brand-ink: #03140d;
-  --brand-soft: #0d2c20;
+  --brand-soft: #16241e;
   --accent: #bef264;
   --ember: #fb923c;
   --ember-soft: #3a2113;
@@ -58,7 +59,7 @@
   --st-review: #fbbf24;
   --st-review-soft: #33260b;
   --st-locked: #94a3b8;
-  --st-locked-soft: #17211d;
+  --st-locked-soft: #1e2024;
   --danger: #f87171;
   --danger-soft: #3a1414;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
@@ -165,8 +166,28 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
 .sf-stagger > *:nth-child(4) { animation-delay: 120ms; }
 .sf-stagger > *:nth-child(n + 5) { animation-delay: 160ms; }
 
+/* Primary buttons: a soft light sweep on hover. .sf-shine-auto (main calls to
+   action only) also sweeps every few seconds. The sweep sits under the label. */
+.sf-shine, .sf-shine-auto { position: relative; overflow: hidden; isolation: isolate; }
+.sf-shine::after, .sf-shine-auto::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.32) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+.sf-shine:hover::after { animation: sf-sweep 0.75s ease-out; }
+.sf-shine-auto::after { animation: sf-sweep-idle 5s ease-in-out 1.5s infinite; }
+@keyframes sf-sweep { to { transform: translateX(120%); } }
+@keyframes sf-sweep-idle {
+  0% { transform: translateX(-120%); }
+  22%, 100% { transform: translateX(120%); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .sf-skeleton, .sf-enter, .sf-fade, .sf-pop, .sf-bar, .sf-stagger > * { animation: none !important; }
+  .sf-skeleton, .sf-enter, .sf-fade, .sf-pop, .sf-bar, .sf-stagger > *, .sf-shine::after, .sf-shine-auto::after { animation: none !important; }
   * { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 

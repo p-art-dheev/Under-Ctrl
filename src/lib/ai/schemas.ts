@@ -22,12 +22,17 @@ const num = (schema: z.ZodNumber) => z.preprocess(lenient, schema);
 const unit = num(z.number().min(0).max(1));
 
 // 1. Goal interpretation
+// When Gemma asks a clarification question it often leaves title, domain and
+// summary null, since there is nothing to restate yet. Those are optional here;
+// startCourse fills them from the goal text if they are still missing.
+const optionalText = (max: number) =>
+  z.preprocess((v) => (typeof v === "string" && !v.trim() ? null : v), z.string().trim().max(max).nullish());
 export const GoalInterpretation = z.object({
-  is_specific: z.boolean(),
-  clarification_question: z.string().trim().max(240).nullable(),
-  title: text(80),
-  domain: text(60),
-  summary: text(400),
+  is_specific: z.preprocess((v) => (v === "true" ? true : v === "false" ? false : v), z.boolean()),
+  clarification_question: optionalText(240),
+  title: optionalText(80),
+  domain: optionalText(60),
+  summary: optionalText(400),
 });
 
 // 2. Graph proposal

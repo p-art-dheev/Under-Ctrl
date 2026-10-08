@@ -51,6 +51,11 @@ const now = () => new Date().toISOString();
 export class UserError extends Error {}
 
 // ------------------------------------------------------------------ helpers
+const clip = (s: string, max: number) => {
+  const t = s.trim().replace(/\s+/g, " ");
+  return t.length <= max ? t : `${t.slice(0, max - 1).trimEnd()}…`;
+};
+
 function ancestors(snap: Pick<Snapshot, "edges">, skillId: string): Set<string> {
   const out = new Set<string>();
   const stack = [skillId];
@@ -183,6 +188,11 @@ export async function startCourse(store: Store, input: OnboardingInput): Promise
     return { status: "clarify", question: interp.clarification_question ?? "Could you say more about what you want to be able to do?" };
   }
   const goalText = input.clarification ? `${input.goal}\n(Clarified: ${input.clarification})` : input.goal;
+  const interpretation = {
+    title: interp.title || clip(input.goal, 80),
+    domain: interp.domain || "General",
+    summary: interp.summary || clip(goalText, 400),
+  };
   const goal: LearningGoal = {
     id: id(),
     owner_id: store.userId,
@@ -191,7 +201,7 @@ export async function startCourse(store: Store, input: OnboardingInput): Promise
     daily_minutes: input.dailyMinutes,
     explanation_format: input.format,
     target_date: input.targetDate,
-    interpretation: { title: interp.title, domain: interp.domain, summary: interp.summary },
+    interpretation,
     created_at: now(),
   };
   await store.insert("learning_goals", goal as unknown as Record<string, unknown>);
@@ -199,7 +209,7 @@ export async function startCourse(store: Store, input: OnboardingInput): Promise
     id: id(),
     goal_id: goal.id,
     owner_id: store.userId,
-    title: interp.title,
+    title: interpretation.title,
     status: "setup",
     graph_version: 0,
     content_mode: contentMode(),

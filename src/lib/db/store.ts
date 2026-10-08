@@ -181,7 +181,8 @@ interface LocalDb {
 }
 
 const DATA_DIR = appEnv("DATA_DIR") || path.join(process.cwd(), ".data");
-const DB_FILE = path.join(DATA_DIR, "cognify-local.json");
+// File name predates the rename to Cognify; kept so existing local demo data still loads.
+const DB_FILE = path.join(DATA_DIR, "skillforge-local.json");
 
 const g = globalThis as unknown as { __sfLocal?: { db: LocalDb | null; lock: Promise<unknown> } };
 const local = (g.__sfLocal ??= { db: null, lock: Promise.resolve() });

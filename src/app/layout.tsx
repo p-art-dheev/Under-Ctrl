@@ -11,14 +11,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f6faf7" },
-    { media: "(prefers-color-scheme: dark)", color: "#060f0b" },
-  ],
+  themeColor: "#f6faf7",
 };
 
 // Applies the saved theme (or the OS preference) before first paint, so there is no flash.
-const THEME_SCRIPT = `try{var t=localStorage.getItem("sf-theme");var d=t?t==="dark":matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d)}catch(e){}`;
+const THEME_SCRIPT = `try{document.documentElement.classList.toggle("dark",localStorage.getItem("sf-theme")==="dark")}catch(e){}`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
