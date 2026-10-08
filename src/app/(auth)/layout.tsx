@@ -1,6 +1,6 @@
 import { CheckCircle2, GitBranch, Quote, SearchCheck } from "lucide-react";
 import { ModeBanner } from "@/components/mode-banner";
-import { Logo } from "@/components/logo";
+import { Logo, LogoGlyph } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const POINTS = [
@@ -26,7 +26,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <aside className="relative hidden overflow-hidden bg-gradient-to-br from-emerald-800 via-emerald-700 to-emerald-500 p-12 text-white lg:flex lg:flex-col lg:justify-between dark:from-[#04140d] dark:via-emerald-950 dark:to-emerald-800">
           <div className="sf-grid-bg pointer-events-none absolute inset-0 opacity-25" aria-hidden />
           <div className="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-lime-300/20 blur-3xl" aria-hidden />
-          <p className="relative text-sm font-medium text-white/70">Adaptive learning, powered by Gemma 4</p>
+          <LogoGlyph className="pointer-events-none absolute -bottom-24 -right-20 h-[26rem] w-[26rem] text-white/[0.07]" />
+          <div className="relative flex items-center gap-3">
+            <span className="grid h-11 w-11 place-items-center rounded-xl bg-white/15 ring-1 ring-white/25 backdrop-blur"><LogoGlyph className="h-6 w-6 text-white" /></span>
+            <div>
+              <p className="font-display text-lg font-semibold leading-tight">Cognify</p>
+              <p className="text-sm text-white/70">Adaptive learning, powered by Gemma 4</p>
+            </div>
+          </div>
           <div className="relative">
             <h2 className="max-w-md text-4xl font-semibold leading-tight tracking-tight">Learn from evidence, not from a fixed syllabus.</h2>
             <ul className="mt-8 space-y-4">

@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { currentUser } from "@/lib/auth";
 import { buttonVariants } from "@/components/ui";
-import { Logo, LogoMark } from "@/components/logo";
+import { Logo, LogoGlyph, LogoMark } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ModeBanner } from "@/components/mode-banner";
 import { cn } from "@/lib/utils";
@@ -87,9 +87,15 @@ export default async function Home() {
         <div className="sf-grid-bg pointer-events-none absolute inset-0" aria-hidden />
         <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-4 pb-20 pt-16 md:px-6 md:pt-24 lg:grid-cols-[1.05fr_1fr]">
           <div className="sf-enter">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-soft/70 px-3 py-1 text-xs font-medium text-brand">
-              <Sparkles size={13} aria-hidden /> Powered by Gemma 4, an open model
-            </span>
+            <div className="flex flex-wrap items-center gap-4">
+              <span className="relative">
+                <span className="absolute inset-0 -z-10 scale-150 rounded-full bg-brand/25 blur-2xl" aria-hidden />
+                <LogoMark className="sf-float h-14 w-14" />
+              </span>
+              <span className="inline-flex items-center gap-2 rounded-full border border-brand/25 bg-brand-soft/70 px-3 py-1 text-xs font-medium text-brand">
+                <Sparkles size={13} aria-hidden /> Powered by Gemma 4, an open model
+              </span>
+            </div>
             <h1 className="mt-5 text-[2.6rem] font-semibold leading-[1.05] tracking-tight sm:text-5xl lg:text-[3.6rem]">
               The course that{" "}
               <span className="bg-gradient-to-r from-brand to-emerald-500 bg-clip-text text-transparent dark:to-lime-300">adapts to every answer</span>{" "}
@@ -166,7 +172,7 @@ export default async function Home() {
           <div className="mt-10 overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow)]">
             <div className="grid grid-cols-2 border-b border-line bg-surface-2/60 text-xs font-semibold uppercase tracking-wider text-muted">
               <div className="px-5 py-3">Typical course</div>
-              <div className="flex items-center gap-2 px-5 py-3 text-brand"><LogoMark className="h-5 w-5 rounded-md [&_svg]:h-3 [&_svg]:w-3" /> Cognify</div>
+              <div className="flex items-center gap-2 px-5 py-3 text-brand"><LogoMark className="h-5 w-5 drop-shadow-none" /> Cognify</div>
             </div>
             {COMPARE.map(([a, b]) => (
               <div key={a} className="grid grid-cols-2 border-b border-line text-sm last:border-0">
@@ -194,6 +200,9 @@ export default async function Home() {
       <section className="px-4 pb-20 md:px-6">
         <div className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-700 via-brand to-emerald-500 px-6 py-16 text-center text-white shadow-[var(--shadow-lg)] dark:from-emerald-900 dark:via-emerald-800 dark:to-emerald-600">
           <div className="sf-grid-bg pointer-events-none absolute inset-0 opacity-20" aria-hidden />
+          <LogoGlyph className="pointer-events-none absolute -bottom-16 -right-10 h-72 w-72 text-white/10 md:-right-4" />
+          <LogoGlyph className="pointer-events-none absolute -left-12 -top-14 hidden h-48 w-48 -rotate-12 text-white/[0.06] md:block" />
+          <span className="relative mx-auto mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-white/15 ring-1 ring-white/25 backdrop-blur"><LogoGlyph className="h-8 w-8 text-white" /></span>
           <h2 className="relative text-3xl font-semibold tracking-tight md:text-4xl">Start with one goal.</h2>
           <p className="relative mx-auto mt-3 max-w-lg text-white/85">Your skill graph, lessons and progress are saved to your account, ready when you come back.</p>
           <Link href="/signup" className="relative mt-8 inline-flex h-11 items-center gap-2 rounded-lg bg-white px-6 text-[15px] font-semibold text-emerald-800 shadow-lg transition hover:bg-white/90 active:scale-[0.98]">
@@ -205,8 +214,8 @@ export default async function Home() {
       <footer className="border-t border-line/70">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted md:flex-row md:px-6">
           <div className="flex items-center gap-3">
-            <LogoMark className="h-7 w-7" />
-            <span>Cognify by team Under Ctrl · Hacktoberfest Hack Day, Coimbatore 2026</span>
+            <LogoMark className="h-7 w-7 drop-shadow-none" />
+            <span><span className="font-display font-semibold text-ink">Cognify</span> by team Under Ctrl · Hacktoberfest Hack Day, Coimbatore 2026</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="https://github.com/p-art-dheev/Under-Ctrl" className="transition-colors hover:text-ink">GitHub</a>

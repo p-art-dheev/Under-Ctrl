@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Award, BookOpen, LayoutDashboard, Library, LogOut, Network, Plus, Settings, Target } from "lucide-react";
-import { LogoMark } from "@/components/logo";
+import { LogoMark, Wordmark } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { signOutAction } from "@/app/actions";
@@ -23,9 +23,9 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
   return (
     <>
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 flex-col border-r border-line bg-surface/80 px-3 py-5 backdrop-blur md:flex">
-        <Link href="/dashboard" className="mb-6 flex items-center gap-2.5 px-2">
-          <LogoMark />
-          <span className="font-display text-[1.1rem] font-semibold tracking-tight">Cognify</span>
+        <Link href="/dashboard" className="group mb-6 flex items-center gap-2.5 px-2" aria-label="Cognify dashboard">
+          <LogoMark className="transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-105" />
+          <Wordmark className="text-[1.1rem]" />
         </Link>
         {courseTitle ? (
           <div className="mb-5 rounded-xl border border-brand/20 bg-gradient-to-br from-brand-soft to-transparent px-3 dark:border-line dark:from-surface-2 py-2.5">
@@ -70,7 +70,7 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
         </div>
       </aside>
       <nav className="sticky top-0 z-20 flex items-center gap-1 overflow-x-auto border-b border-line bg-surface/90 px-3 py-2 backdrop-blur md:hidden" aria-label="Main">
-        <LogoMark className="mr-1 h-7 w-7 shrink-0" />
+        <Link href="/dashboard" aria-label="Cognify dashboard" className="mr-1 shrink-0"><LogoMark className="h-7 w-7" /></Link>
         {NAV.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}

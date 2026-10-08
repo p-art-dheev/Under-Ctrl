@@ -212,3 +212,12 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
   --xy-edge-stroke: var(--line);
 }
 :root .react-flow__controls { border-radius: 10px; overflow: hidden; border: 1px solid var(--line); }
+
+/* Brand mark: the lime node pulses on hover, and the hero mark floats. */
+.sf-logo .sf-spark { transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: no-preference) {
+  .group:hover .sf-logo .sf-spark, .sf-logo:hover .sf-spark { animation: sf-spark 0.9s ease-in-out infinite; }
+  .sf-float { animation: sf-float 6s ease-in-out infinite; }
+}
+@keyframes sf-spark { 50% { transform: scale(1.25); } }
+@keyframes sf-float { 50% { transform: translateY(-6px) rotate(-3deg); } }

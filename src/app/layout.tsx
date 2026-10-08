@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   title: { default: "Cognify", template: "%s · Cognify" },
   description:
     "Adaptive learning workspace: a persistent skill graph that changes with your assessment evidence.",
+  applicationName: "Cognify",
+  appleWebApp: { title: "Cognify", capable: true, statusBarStyle: "default" },
+  openGraph: { siteName: "Cognify", type: "website" },
+  twitter: { card: "summary_large_image" },
 };
 
 export const viewport: Viewport = {
