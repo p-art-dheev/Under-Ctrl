@@ -2,12 +2,13 @@
 // the app. Pages still verify the user server-side (requireUser).
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { supabaseUrl } from "@/lib/supabase-url";
 
 const PUBLIC = ["/", "/login", "/signup", "/check-email", "/auth"];
 const isPublic = (p: string) => PUBLIC.some((x) => p === x || (x !== "/" && p.startsWith(`${x}/`)));
 
 export async function proxy(request: NextRequest) {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = supabaseUrl();
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   const supabaseMode = Boolean(url && anon && process.env.SUPABASE_SERVICE_ROLE_KEY);
   let response = NextResponse.next({ request });

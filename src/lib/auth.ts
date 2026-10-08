@@ -9,6 +9,7 @@ import path from "node:path";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
+import { supabaseUrl } from "@/lib/supabase-url";
 import { dataMode, localStore, supabaseStore, withLocalDb, type Store } from "@/lib/db/store";
 
 export interface SessionUser {
@@ -18,7 +19,7 @@ export interface SessionUser {
 
 export async function supabaseServer() {
   const jar = await cookies();
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  return createServerClient(supabaseUrl()!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       getAll: () => jar.getAll(),
       setAll: (list) => {

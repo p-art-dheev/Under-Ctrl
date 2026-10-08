@@ -7,6 +7,7 @@
 //     version and idempotency rules as sf_commit.
 
 import { promises as fs } from "node:fs";
+import { supabaseUrl } from "@/lib/supabase-url";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Course, QuestionKey } from "@/lib/types";
@@ -95,7 +96,7 @@ const ownerColumn = (table: string) => (table === "profiles" ? "id" : "owner_id"
 
 let adminClient: SupabaseClient | null = null;
 export function supabaseAdmin(): SupabaseClient {
-  adminClient ??= createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+  adminClient ??= createClient(supabaseUrl()!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   return adminClient;
