@@ -377,3 +377,16 @@ describe("question schema", () => {
     expect(q.distractor_tags).toEqual([{ option: 0, code: "value_as_index", suspected_skill_key: "list-indexing", note: "value used as position" }]);
   });
 });
+
+describe("question schema synonyms", () => {
+  it("accepts common type names and fills a missing explanation from the hint", async () => {
+    const { QuestionOut } = await import("@/lib/ai/schemas");
+    const q = QuestionOut.parse({
+      skill_key: "loops", type: "multiple_choice", difficulty: "Easy", question: "Pick one",
+      options: ["a", "b", "c"], correct_answer: 2, hint: "think", rubric: [],
+    });
+    expect([q.type, q.prompt, q.correct_option, q.difficulty, q.explanation]).toEqual(["mcq", "Pick one", 2, "easy", "think"]);
+    const s = QuestionOut.parse({ skill_key: "loops", type: "short_answer", prompt: "Explain", rubric: ["mentions range"], hint: "h", explanation: "e", difficulty: "hard" });
+    expect([s.type, s.options, s.distractor_tags]).toEqual(["short", null, []]);
+  });
+});

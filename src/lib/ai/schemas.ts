@@ -71,6 +71,20 @@ export const MisconceptionOut = z.object({
 function normaliseQuestion(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const q = { ...(raw as Record<string, unknown>) };
+  // common synonyms for field names and values
+  const pick = (...names: string[]) => names.map((n) => q[n]).find((v) => v !== undefined && v !== null && v !== "");
+  q.prompt ??= pick("question", "stem", "text");
+  q.correct_option ??= pick("correct_index", "correct_answer", "answer", "answer_index");
+  q.explanation ??= pick("rationale", "answer_explanation", "solution", "feedback");
+  const type = String(q.type ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  if (["mcq", "multiplechoice", "choice", "singlechoice", "mc"].includes(type)) q.type = "mcq";
+  else if (["short", "shortanswer", "open", "openended", "freetext", "freeresponse", "code", "coding", "written", "explanation"].includes(type)) q.type = "short";
+  else q.type = Array.isArray(q.options) && q.options.length >= 2 ? "mcq" : "short";
+  if (typeof q.difficulty === "string") q.difficulty = q.difficulty.toLowerCase();
+  if (!["easy", "medium", "hard"].includes(q.difficulty as string)) q.difficulty = "medium";
+  if (!Array.isArray(q.rubric)) q.rubric = typeof q.rubric === "string" && q.rubric.trim() ? [q.rubric] : [];
+  if (typeof q.hint !== "string" || !q.hint.trim()) q.hint = "Re-read the lesson section on this skill.";
+  if (typeof q.explanation !== "string" || !q.explanation.trim()) q.explanation = q.hint;
   if (q.type === "short" || (Array.isArray(q.options) && q.options.length === 0)) {
     if (q.type !== "short" && !Array.isArray(q.rubric)) return q;
     q.type = "short";
