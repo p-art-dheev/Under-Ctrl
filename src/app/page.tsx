@@ -274,7 +274,7 @@ function HeroPreview() {
           ))}
         </svg>
       </div>
-      <div className="absolute -left-4 top-14 w-56 rounded-xl border border-line bg-surface p-3 shadow-[var(--shadow-lg)] sm:-left-12">
+      <div className="absolute -left-4 -top-8 w-56 rounded-xl border border-line bg-surface p-3 shadow-[var(--shadow-lg)] sm:-left-12">
         <p className="flex items-center gap-1.5 text-xs font-semibold text-review"><GitBranch size={13} /> Your path changed</p>
         <p className="mt-1 text-xs leading-snug text-muted">Two answers used a value as a position. A 2-question check confirmed it, so a short indexing review comes before Loops.</p>
       </div>
