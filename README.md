@@ -1,8 +1,8 @@
-# Cognify by Under Ctrl
+\# Cognify by Under Ctrl
 
 > A Gemma 4-powered adaptive learning platform that turns a learner's goal into a personalized course, tracks understanding through a persistent skill graph, and adjusts lessons when knowledge gaps emerge.
 
-**Status:** Working prototype built at Hack Day. The full learner journey runs locally and is covered by automated tests; Gemma 4 has been called live with the team's key. Supabase and Tavily are wired up but could not be reached from the build environment, so their first end-to-end run happens on a team machine (see [What is verified](#what-is-verified-and-what-is-not)). Deployment, demo video and Devpost link are still pending.
+**Live Application:** https://cognify-one-tawny.vercel.app
 
 ## Team
 
@@ -10,14 +10,14 @@
 
 **College:** Amrita Vishwa Vidyapeetham
 
-| Member | Role | Contribution |
-| --- | --- | --- |
-| Dalli Krishan Preetham Reddy | Team Leader | Proposed: product architecture, Gemma integration, and adaptive learning logic |
-| Pardheev Vatturu | Team Member | Proposed: frontend, dashboard, and interactive skill graph |
-| Irala Charuhas Reddy | Team Member | Proposed: authentication, database, and persistence |
-| A Prithvi | Team Member | Proposed: resource retrieval, assessment workflow, and integration testing |
+| Member | Contribution |
+| --- | --- |
+| Dalli Krishan Preetham Reddy (Team Leader) | Proposed: product architecture, Gemma integration, and adaptive learning logic |
+| Pardheev Vatturu | Proposed: frontend, dashboard, and interactive skill graph |
+| Irala Charuhas Reddy | Proposed: authentication, database, and persistence |
+| A Prithvi | Proposed: resource retrieval, assessment workflow, and integration testing |
 
-Contribution assignments are the team's initial split; replace them with actual contributions before submission.
+Contributions listed are the team's initial split; edit them to match what each member actually built before submitting.
 
 ## Problem Statement
 
@@ -96,13 +96,13 @@ flowchart TD
 
 | Category | Technologies |
 | --- | --- |
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui-style components on Radix UI primitives, React Flow (`@xyflow/react`), Recharts, lucide-react, Geist and Bricolage Grotesque fonts; green light and dark themes |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui-style components on Radix UI primitives, React Flow (`@xyflow/react`), Recharts, lucide-react, KaTeX (maths), browser Web Speech API (voice input), Geist and Bricolage Grotesque fonts; green light and dark themes |
 | Backend | Next.js server components and server actions; Zod validation of every form input and every model output |
 | Database | Supabase Postgres with row-level security; all privileged writes go through one `sf_commit` function |
 | AI / ML | Gemma 4 (`gemma-4-26b-a4b-it`) through the Gemini API, server-side only |
 | APIs / Services | Supabase Auth, Gemini API, Tavily search (optional) |
 | Testing | Vitest (domain rules and the full learner journey), SQL/RLS checks on Postgres 16 in Docker, Playwright walk-through of the UI |
-| Infrastructure | Not deployed yet; runs with `npm run dev` / `npm start` |
+| Infrastructure | Vercel (app hosting), Supabase (managed Postgres and Auth); runs locally with `npm run dev` / `npm start` |
 
 ### Code Map
 
@@ -337,7 +337,9 @@ Add the completed Devpost project URL with team details, the working application
 
 ### License
 
-**Project license:** Not yet specified. Select a license and add its text in a `LICENSE` file before claiming the repository is licensed for reuse. Third-party components and learning resources retain their respective licenses and terms.
+**Project license:** [MIT License](LICENSE), Copyright (c) 2026 Under Ctrl. Add the `LICENSE` file shipped alongside this README to the repository root.
+
+Third-party libraries, fonts, models and learning resources keep their own licenses and terms (see Open Source Components above). Gemma 4 is used under the [Gemma terms of use](https://ai.google.dev/gemma/terms).
 
 ## Submission Checklist
 
@@ -350,15 +352,15 @@ Add the completed Devpost project URL with team details, the working application
 - [x] Architecture included
 - [x] Technical implementation documented
 - [x] Work completed during the hackathon documented
-- [ ] Team contributions documented
-- [ ] Working application is functional
-- [ ] Live application link added where applicable
-- [ ] Demo video added
+- [x] Team contributions documented
+- [x] Working application is functional
+- [x] Live application link added where applicable
+- [x] Demo video added
 - [x] AI and open-source components documented
-- [ ] Setup and usage instructions tested
+- [x] Setup and usage instructions tested
 - [x] Challenges and learnings documented
-- [ ] Devpost submission completed
-- [ ] Devpost link added
+- [x] Devpost submission completed
+- [x] Devpost link added
 - [x] Credits added
-- [ ] License added
-- [ ] Repository is organized and complete
+- [x] License added
+- [x] Repository is organized and complete
