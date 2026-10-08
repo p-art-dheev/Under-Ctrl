@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, Library, LogOut, Network, Plus, Settings, Target } from "lucide-react";
+import { Award, BookOpen, LayoutDashboard, Library, LogOut, Network, Plus, Settings, Target } from "lucide-react";
 import { LogoMark } from "@/components/logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
@@ -13,6 +13,7 @@ const NAV = [
   { href: "/map", label: "Skill Map", icon: Network },
   { href: "/course", label: "My Course", icon: BookOpen },
   { href: "/resources", label: "Resources", icon: Library },
+  { href: "/certification", label: "Certification", icon: Award },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 
@@ -80,6 +81,7 @@ export function Sidebar({ email, courseTitle }: { email: string; courseTitle: st
             <Icon size={16} aria-hidden /> {label}
           </Link>
         ))}
+        <ThemeToggle className="ml-auto shrink-0" />
       </nav>
     </>
   );

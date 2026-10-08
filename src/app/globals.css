@@ -127,6 +127,15 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: -0.015em; }
   border-radius: 6px;
 }
 
+/* Theme switch: the new theme is revealed as a growing circle (see theme-toggle.tsx). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+
 @keyframes sf-shimmer {
   0% { background-position: -400px 0; }
   100% { background-position: 400px 0; }

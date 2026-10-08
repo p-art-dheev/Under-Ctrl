@@ -187,6 +187,8 @@ export const ShortAnswerEvaluation = z.object({
   misconceptions: z.array(MisconceptionOut).max(3),
   confidence: unit,
   suggested_followup_skill_keys: z.array(key).max(3),
+  // only for answers submitted as photos: the model's reading of the handwriting
+  transcription: optionalText(3000),
 });
 
 // 7. Tutor reply

@@ -2,11 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, HelpCircle, Lightbulb, XCircle } from "lucide-react";
+import { Camera, CheckCircle2, HelpCircle, Lightbulb, X, XCircle } from "lucide-react";
 import { hintAction, submitAction } from "@/app/actions";
 import { Markdown } from "@/components/markdown";
 import { btn, btnGhost, input } from "@/components/ui";
+import { shrinkImage, type AttachedImage } from "@/lib/client-image";
 import type { GradedResult } from "@/lib/services/learning";
+
+const MAX_PHOTOS = 3;
 
 export interface PublicQuestion {
   id: string;
@@ -23,7 +26,7 @@ interface Props {
   questions: PublicQuestion[];
   /** results already saved for this group (shown read-only) */
   saved?: GradedResult[];
-  savedAnswers?: Record<string, { option?: number; text?: string }>;
+  savedAnswers?: Record<string, { option?: number; text?: string; image_count?: number; transcript?: string | null }>;
   submitLabel?: string;
   afterSubmit?: "refresh" | { href: string; label: string };
 }
@@ -31,8 +34,8 @@ interface Props {
 export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers, submitLabel = "Submit answers", afterSubmit = "refresh" }: Props) {
   const router = useRouter();
   const [key] = useState(() => crypto.randomUUID());
-  const [answers, setAnswers] = useState<Record<string, { option?: number; text?: string; dont?: boolean; confidence?: number }>>(() =>
-    Object.fromEntries(Object.entries(savedAnswers ?? {}).map(([k, v]) => [k, { ...v }])),
+  const [answers, setAnswers] = useState<Record<string, { option?: number; text?: string; images?: AttachedImage[]; dont?: boolean; confidence?: number }>>(() =>
+    Object.fromEntries(Object.entries(savedAnswers ?? {}).map(([k, v]) => [k, { option: v.option, text: v.text }])),
   );
   const [hints, setHints] = useState<Record<string, string>>({});
   const [results, setResults] = useState<GradedResult[] | null>(saved?.length ? saved : null);
@@ -41,7 +44,7 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
   const [pending, start] = useTransition();
   const done = results !== null;
   const byQ = new Map((results ?? []).map((r) => [r.question_id, r]));
-  const complete = questions.every((q) => (q.type === "mcq" ? answers[q.id]?.option !== undefined : (answers[q.id]?.text ?? "").trim().length > 0));
+  const complete = questions.every((q) => (q.type === "mcq" ? answers[q.id]?.option !== undefined : (answers[q.id]?.text ?? "").trim().length > 0 || Boolean(answers[q.id]?.images?.length)));
 
   const set = (qid: string, patch: Partial<(typeof answers)[string]>) => setAnswers((a) => ({ ...a, [qid]: { ...a[qid], ...patch } }));
 
@@ -55,6 +58,7 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
           question_id: q.id,
           option: answers[q.id]?.option ?? null,
           text: answers[q.id]?.text ?? null,
+          images: answers[q.id]?.images?.map(({ mime, data }) => ({ mime, data })),
           dont_understand: answers[q.id]?.dont ?? false,
           confidence: answers[q.id]?.confidence ?? null,
         })),
@@ -65,6 +69,21 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
       setOutcome(res.data.outcome);
       router.refresh();
     });
+
+  const attach = async (qid: string, files: File[]) => {
+    const room = MAX_PHOTOS - (answers[qid]?.images?.length ?? 0);
+    if (!files.length) return;
+    if (room <= 0) return setError(`You can attach up to ${MAX_PHOTOS} photos per answer.`);
+    setError(null);
+    try {
+      const added = await Promise.all(files.slice(0, room).map(shrinkImage));
+      setAnswers((a) => ({ ...a, [qid]: { ...a[qid], images: [...(a[qid]?.images ?? []), ...added] } }));
+      if (files.length > room) setError(`Only the first ${MAX_PHOTOS} photos were attached.`);
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  };
+  const detach = (qid: string, index: number) => setAnswers((a) => ({ ...a, [qid]: { ...a[qid], images: a[qid]?.images?.filter((_, i) => i !== index) } }));
 
   const hint = (qid: string) =>
     start(async () => {
@@ -110,7 +129,63 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
                 })}
               </div>
             ) : (
-              <textarea className={`${input} mt-3`} rows={4} value={a.text ?? ""} onChange={(e) => set(q.id, { text: e.target.value })} placeholder="Explain in your own words, or write code" aria-label={`Answer to question ${i + 1}`} />
+              <div className="mt-3">
+                <textarea
+                  className={input}
+                  rows={4}
+                  value={a.text ?? ""}
+                  onChange={(e) => set(q.id, { text: e.target.value })}
+                  onPaste={(e) => {
+                    const files = [...e.clipboardData.files].filter((f) => f.type.startsWith("image/"));
+                    if (files.length) {
+                      e.preventDefault();
+                      void attach(q.id, files);
+                    }
+                  }}
+                  placeholder="Explain in your own words, write code, or attach a photo of your working"
+                  aria-label={`Answer to question ${i + 1}`}
+                />
+                {!done ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-line px-2.5 py-1.5 text-xs font-medium transition-colors hover:border-brand hover:text-brand has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                      <Camera size={14} aria-hidden /> Attach photo
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="sr-only"
+                        disabled={(a.images?.length ?? 0) >= MAX_PHOTOS}
+                        onChange={(e) => {
+                          void attach(q.id, [...(e.target.files ?? [])]);
+                          e.target.value = "";
+                        }}
+                      />
+                    </label>
+                    <span className="text-xs text-muted">Handwritten derivations, diagrams or code. You can also paste a screenshot.</span>
+                  </div>
+                ) : null}
+                {a.images?.length ? (
+                  <ul className="mt-2 flex flex-wrap gap-2">
+                    {a.images.map((img, k) => (
+                      <li key={k} className="sf-pop relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element -- local data URL thumbnail */}
+                        <img src={img.preview} alt={`Attached working ${k + 1}`} className="h-20 w-20 rounded-lg border border-line object-cover" />
+                        {!done ? (
+                          <button type="button" onClick={() => detach(q.id, k)} aria-label={`Remove photo ${k + 1}`} className="absolute -right-1.5 -top-1.5 grid h-5 w-5 place-items-center rounded-full border border-line bg-surface text-muted shadow-[var(--shadow)] hover:text-danger">
+                            <X size={11} aria-hidden />
+                          </button>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {done && savedAnswers?.[q.id]?.image_count ? (
+                  <div className="mt-2 rounded-lg bg-surface-2 px-3 py-2 text-xs text-muted">
+                    <p className="font-medium">{savedAnswers[q.id].image_count} photo{savedAnswers[q.id].image_count === 1 ? "" : "s"} submitted{savedAnswers[q.id].transcript ? ", read as:" : ""}</p>
+                    {savedAnswers[q.id].transcript ? <div className="mt-1 text-ink"><Markdown text={savedAnswers[q.id].transcript!} /></div> : null}
+                  </div>
+                ) : null}
+              </div>
             )}
             {!done ? (
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">

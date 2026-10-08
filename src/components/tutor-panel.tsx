@@ -6,6 +6,7 @@ import { Bot, Send } from "lucide-react";
 import { tutorAction } from "@/app/actions";
 import { Markdown } from "@/components/markdown";
 import { input } from "@/components/ui";
+import { VoiceInput } from "@/components/voice-input";
 import type { TutorMode } from "@/lib/ai/tasks";
 
 export function TutorPanel({ courseId, skillId, messages }: { courseId: string; skillId: string; messages: { id: string; role: string; content: string }[] }) {
@@ -16,6 +17,8 @@ export function TutorPanel({ courseId, skillId, messages }: { courseId: string; 
   // the learner's own message shows immediately while the tutor is thinking
   const [draft, setDraft] = useState<string | null>(null);
   const scroller = useRef<HTMLDivElement>(null);
+  // text typed before dictation started; speech is appended to it
+  const typed = useRef("");
   useEffect(() => {
     scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
   }, [messages.length, pending]);
@@ -59,7 +62,13 @@ export function TutorPanel({ courseId, skillId, messages }: { courseId: string; 
           ))}
         </div>
         <form onSubmit={(e) => { e.preventDefault(); if (text.trim()) send("ask", text); }} className="flex gap-2">
-          <input value={text} onChange={(e) => setText(e.target.value)} className={input} placeholder="Ask about this lesson" maxLength={1500} aria-label="Message the tutor" />
+          <input value={text} onChange={(e) => setText(e.target.value)} className={input} placeholder="Type or speak your question" maxLength={1500} aria-label="Message the tutor" />
+          <VoiceInput
+            disabled={pending}
+            onError={setError}
+            onStart={() => { typed.current = text; setError(null); }}
+            onText={(spoken) => setText(`${typed.current}${typed.current && !/\s$/.test(typed.current) ? " " : ""}${spoken}`.slice(0, 1500))}
+          />
           <button className="rounded-lg bg-brand px-3 text-brand-ink disabled:opacity-50" disabled={pending || !text.trim()} aria-label="Send"><Send size={16} /></button>
         </form>
         {error ? <p role="alert" className="text-xs text-danger">{error}</p> : null}

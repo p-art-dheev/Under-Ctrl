@@ -1,8 +1,12 @@
 // Small, safe renderer for the markdown Gemma writes in lessons, feedback and
 // tutor replies: headings, paragraphs, fenced code, bullet and numbered lists,
-// block quotes, inline code, bold, italics, http(s) links and [S1] citations.
-// Text is rendered as React children, never as raw HTML.
+// block quotes, tables, inline code, bold, italics, http(s) links, [S1]
+// citations and LaTeX maths ($..$, $$..$$, \(..\), \[..\]).
+// Text is rendered as React children, never as raw HTML; maths goes through KaTeX.
 import { Fragment, type ReactNode } from "react";
+import { CodeBlock } from "@/components/code-block";
+import { Math } from "@/components/math";
+import { LATEX_N_COMMAND } from "@/lib/latex";
 
 export interface CitationTarget {
   key: string;
@@ -15,15 +19,21 @@ type Block =
   | { kind: "heading"; level: number; text: string }
   | { kind: "ul" | "ol"; items: string[] }
   | { kind: "quote"; lines: string[] }
+  | { kind: "math"; tex: string }
+  | { kind: "table"; head: string[]; rows: string[][] }
   | { kind: "p"; lines: string[] };
 
 const BULLET = /^\s*[-*•]\s+/;
 const NUMBERED = /^\s*\d+[.)]\s+/;
 
+const TABLE_RULE = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+const cells = (line: string) => line.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+
 /** Model text sometimes arrives with escaped newlines ("\\n") or CRLF. */
 function normalise(text: string): string {
   let t = text.replace(/\r\n?/g, "\n");
-  if (!t.includes("\n") && t.includes("\\n")) t = t.replace(/\\n/g, "\n");
+  // "\\n" is a newline unless it starts a LaTeX command such as \nabla or \neq
+  if (!t.includes("\n") && t.includes("\\n")) t = t.replace(/\\n/g, (m, off: number) => (LATEX_N_COMMAND.test(t.slice(off, off + 14)) ? m : "\n"));
   return t.trim();
 }
 
@@ -42,7 +52,42 @@ function parse(text: string): Block[] {
       flush();
       const body: string[] = [];
       while (++i < lines.length && !/^\s*```\s*$/.test(lines[i])) body.push(lines[i]);
-      blocks.push({ kind: "code", lang: fence[1], text: body.join("\n") });
+      if (/^(math|latex|tex)$/i.test(fence[1])) blocks.push({ kind: "math", tex: body.join("\n") });
+      else blocks.push({ kind: "code", lang: fence[1], text: body.join("\n") });
+      continue;
+    }
+    // display maths on its own lines: $$ ... $$ or \[ ... \]
+    const display = [["$$", "$$"], ["\\[", "\\]"]].find(([open]) => line.trim().startsWith(open));
+    if (display) {
+      const [open, close] = display;
+      const first = line.trim().slice(open.length);
+      const end = first.indexOf(close);
+      if (end !== -1 && !first.slice(end + close.length).trim()) {
+        flush();
+        blocks.push({ kind: "math", tex: first.slice(0, end) });
+        continue;
+      }
+      if (end === -1) {
+        let j = i + 1;
+        const body = [first];
+        while (j < lines.length && !lines[j].includes(close)) body.push(lines[j++]);
+        if (j < lines.length && !lines[j].slice(lines[j].indexOf(close) + close.length).trim()) {
+          body.push(lines[j].slice(0, lines[j].indexOf(close)));
+          flush();
+          blocks.push({ kind: "math", tex: body.join("\n") });
+          i = j;
+          continue;
+        }
+      }
+    }
+    if (line.includes("|") && TABLE_RULE.test(lines[i + 1] ?? "")) {
+      flush();
+      const head = cells(line);
+      const rows: string[][] = [];
+      i += 2;
+      while (i < lines.length && lines[i].trim() && lines[i].includes("|")) rows.push(cells(lines[i++]));
+      i--;
+      blocks.push({ kind: "table", head, rows });
       continue;
     }
     if (!line.trim()) {
@@ -89,7 +134,7 @@ function parse(text: string): Block[] {
 
 function inline(text: string, cites: Map<string, CitationTarget>, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
-  const re = /(`[^`]+`|\*\*[^*]+\*\*|__[^_]+__|\*[^*\s][^*]*\*|\b_[^_\s][^_]*_\b|\[[^\]]+\]\((https?:\/\/[^\s)]+)\)|\[S\d+(?:\s*,\s*S\d+)*\])/g;
+  const re = /(`[^`]+`|\$\$[^\n]+?\$\$|\\\([\s\S]+?\\\)|\\\[[\s\S]+?\\\]|\$(?![\s$])(?:[^$\\\n]|\\.)+?(?<![\s\\])\$(?!\d)|\*\*[^*]+\*\*|__[^_]+__|\*[^*\s][^*]*\*|\b_[^_\s][^_]*_\b|\[[^\]]+\]\((https?:\/\/[^\s)]+)\)|\[S\d+(?:\s*,\s*S\d+)*\])/g;
   let last = 0;
   let m: RegExpExecArray | null;
   let i = 0;
@@ -98,8 +143,10 @@ function inline(text: string, cites: Map<string, CitationTarget>, keyBase: strin
     const tok = m[0];
     const k = `${keyBase}-${i++}`;
     if (tok.startsWith("`")) out.push(<code key={k} className="rounded bg-surface-2 px-1 py-0.5 font-mono text-[0.85em]">{tok.slice(1, -1)}</code>);
-    else if (tok.startsWith("**") || tok.startsWith("__")) out.push(<strong key={k}>{tok.slice(2, -2)}</strong>);
-    else if (tok.startsWith("*") || tok.startsWith("_")) out.push(<em key={k}>{tok.slice(1, -1)}</em>);
+    else if (tok.startsWith("$$") || tok.startsWith("\\(") || tok.startsWith("\\[")) out.push(<Math key={k} tex={tok.slice(2, -2)} />);
+    else if (tok.startsWith("$")) out.push(<Math key={k} tex={tok.slice(1, -1)} />);
+    else if (tok.startsWith("**") || tok.startsWith("__")) out.push(<strong key={k}>{inline(tok.slice(2, -2), cites, k)}</strong>);
+    else if (tok.startsWith("*") || tok.startsWith("_")) out.push(<em key={k}>{inline(tok.slice(1, -1), cites, k)}</em>);
     else if (m[2]) {
       out.push(<a key={k} href={m[2]} target="_blank" rel="noreferrer" className="text-brand underline-offset-2 hover:underline">{tok.slice(1, tok.indexOf("]("))}</a>);
     } else {
@@ -124,10 +171,23 @@ export function Markdown({ text, citations = [] }: { text: string; citations?: C
         const key = `b${idx}`;
         switch (b.kind) {
           case "code":
+            return <CodeBlock key={key} lang={b.lang} text={b.text} />;
+          case "math":
+            return <Math key={key} tex={b.tex} display />;
+          case "table":
             return (
-              <pre key={key} className="my-3 overflow-x-auto rounded-xl border border-line bg-surface-2 p-3 font-mono text-[13px] leading-relaxed" data-lang={b.lang || undefined}>
-                <code>{b.text}</code>
-              </pre>
+              <div key={key} className="my-3 overflow-x-auto rounded-xl border border-line">
+                <table className="w-full border-collapse text-sm">
+                  <thead className="bg-surface-2 text-left">
+                    <tr>{b.head.map((h, k) => <th key={k} className="border-b border-line px-3 py-2 font-semibold">{ln(h, `${key}-h${k}`)}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {b.rows.map((r, ri) => (
+                      <tr key={ri} className="border-b border-line last:border-0">{r.map((c, k) => <td key={k} className="px-3 py-2 align-top">{ln(c, `${key}-${ri}-${k}`)}</td>)}</tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             );
           case "heading":
             return b.level <= 2

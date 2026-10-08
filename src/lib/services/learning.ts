@@ -413,6 +413,10 @@ export async function advanceSetup(store: Store, courseId: string): Promise<Cour
   return stage;
 }
 
+/** Every lesson is built from, and lists, at least this many sources. */
+const MIN_SOURCES = 3;
+const MAX_SOURCES = 5;
+
 const rows = <T>(list: T[]) => list as unknown as Record<string, unknown>[];
 
 async function retrieveResources(snap: Snapshot): Promise<Resource[]> {
@@ -446,7 +450,7 @@ async function retrieveResources(snap: Snapshot): Promise<Resource[]> {
       const perSkill = new Map<string, number>();
       for (const sel of ranking.selections) {
         const c = candidates.find((x) => x.id === sel.candidate_id && x.skill.key === sel.skill_key);
-        if (!c || (perSkill.get(c.skill.id) ?? 0) >= 3) continue;
+        if (!c || (perSkill.get(c.skill.id) ?? 0) >= 4) continue;
         if (hits.some((h) => h.skill.id === c.skill.id && h.hit.url === c.url)) continue;
         perSkill.set(c.skill.id, (perSkill.get(c.skill.id) ?? 0) + 1);
         hits.push({
@@ -471,10 +475,15 @@ async function retrieveResources(snap: Snapshot): Promise<Resource[]> {
       hits.length = 0;
     }
   }
-  // every skill gets sources: curated matches fill in wherever search found nothing
+  // every skill gets at least MIN_SOURCES: curated matches top up wherever search found fewer
   for (const s of core) {
-    if (hits.some((h) => h.skill.id === s.id)) continue;
-    for (const hit of curatedFor(s)) hits.push({ skill: s, hit });
+    let have = hits.filter((h) => h.skill.id === s.id).length;
+    for (const hit of curatedFor(s, 6)) {
+      if (have >= MIN_SOURCES) break;
+      if (hits.some((h) => h.skill.id === s.id && h.hit.url === hit.url)) continue;
+      hits.push({ skill: s, hit });
+      have++;
+    }
   }
   return hits.map(({ skill, hit }, i) => ({
     id: id(),
@@ -496,6 +505,27 @@ async function retrieveResources(snap: Snapshot): Promise<Resource[]> {
 }
 
 // ------------------------------------------------------------------ lessons
+/**
+ * The sources a lesson is written from: the skill's own first, then those of its
+ * prerequisites (nearest first), then any other course resource, so a lesson has
+ * at least MIN_SOURCES whenever the course has that many.
+ */
+function lessonSources(snap: Snapshot, skill: Skill, own: Set<string>): Resource[] {
+  const picked = snap.resources.filter((r) => own.has(r.skill_id));
+  if (picked.length >= MIN_SOURCES) return picked.slice(0, MAX_SOURCES);
+  const prereqs = new Set(snap.edges.filter((e) => e.dependent_id === skill.id).map((e) => e.prerequisite_id));
+  const rest = snap.resources.filter((r) => !own.has(r.skill_id));
+  const ordered = [...rest.filter((r) => prereqs.has(r.skill_id)), ...rest.filter((r) => !prereqs.has(r.skill_id))];
+  const seen = new Set(picked.map((r) => r.url));
+  for (const r of ordered) {
+    if (picked.length >= MIN_SOURCES) break;
+    if (seen.has(r.url)) continue;
+    seen.add(r.url);
+    picked.push(r);
+  }
+  return picked;
+}
+
 /** Returns the current lesson for a skill, generating it on demand (cached by version and difficulty). */
 export async function ensureLesson(store: Store, courseId: string, skillId: string): Promise<Lesson> {
   const snap = await loadSnapshot(store, courseId);
@@ -513,7 +543,7 @@ export async function ensureLesson(store: Store, courseId: string, skillId: stri
     reviewOf &&
     ([...snap.adaptations].reverse().find((e) => e.kind === "remediation_inserted" && e.patch?.add_skills?.some((s) => s.id === skill.id))?.reason ?? "");
   const sourceSkillIds = new Set([skill.id, ...(reviewOf ? [reviewOf.id] : [])]);
-  const resources = snap.resources.filter((r) => sourceSkillIds.has(r.skill_id)).slice(0, 4);
+  const resources = lessonSources(snap, skill, sourceSkillIds);
   const prereqTitles = snap.edges
     .filter((e) => e.dependent_id === skill.id)
     .map((e) => snap.skills.find((s) => s.id === e.prerequisite_id)?.title ?? "");
@@ -545,6 +575,7 @@ export async function ensureLesson(store: Store, courseId: string, skillId: stri
     estimated_minutes: Math.min(snap.goal.daily_minutes, skill.estimated_minutes + 10),
   };
   const clean = sanitizeLessonCitations(content, allowed);
+  // the lesson lists every source it was written from; the page marks which ones the text cites
   const lesson: Lesson = {
     id: id(),
     course_id: snap.course.id,
@@ -553,7 +584,7 @@ export async function ensureLesson(store: Store, courseId: string, skillId: stri
     version: (latest?.version ?? 0) + 1,
     difficulty: skill.difficulty,
     content: clean.content,
-    source_keys: clean.used,
+    source_keys: allowed,
     practice_group_id: id(),
     content_mode: snap.course.content_mode,
     created_at: now(),
@@ -730,10 +761,33 @@ export async function overrideUnlock(store: Store, courseId: string, skillId: st
 }
 
 // ------------------------------------------------------------------ assessment
+/** A photo of the learner's working, as sent by the browser (base64 without the data: prefix). */
+export interface AnswerImage {
+  mime: string;
+  data: string;
+}
+const IMAGE_MIMES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_IMAGES = 3;
+const MAX_IMAGE_CHARS = 1_200_000; // about 0.9 MB per photo; the browser downsizes before sending (hosting limits requests to ~4.5 MB)
+
+function cleanImages(list: AnswerImage[] | undefined): AnswerImage[] {
+  if (!list?.length) return [];
+  if (list.length > MAX_IMAGES) throw new UserError(`Attach at most ${MAX_IMAGES} photos per answer.`);
+  for (const i of list) {
+    if (!IMAGE_MIMES.has(i.mime)) throw new UserError("Photos must be JPEG, PNG or WebP.");
+    if (typeof i.data !== "string" || i.data.length > MAX_IMAGE_CHARS || !/^[A-Za-z0-9+/]+={0,2}$/.test(i.data)) {
+      throw new UserError("A photo is too large or could not be read. Try a smaller one.");
+    }
+  }
+  return list.map((i) => ({ mime: i.mime, data: i.data }));
+}
+
 export interface AnswerInput {
   question_id: string;
   option?: number | null;
   text?: string | null;
+  /** short-answer questions only: photos of handwritten or typeset working */
+  images?: AnswerImage[];
   confidence?: number | null;
   dont_understand?: boolean;
 }
@@ -775,7 +829,7 @@ export async function submitAssessment(
   const byQ = new Map(answers.map((a) => [a.question_id, a]));
   for (const q of questions) {
     const a = byQ.get(q.id);
-    const empty = !a || (q.type === "mcq" ? a.option === null || a.option === undefined : !a.text?.trim());
+    const empty = !a || (q.type === "mcq" ? a.option === null || a.option === undefined : !a.text?.trim() && !a.images?.length);
     if (empty) throw new UserError("Please answer every question before submitting.");
   }
 
@@ -792,6 +846,8 @@ export async function submitAssessment(
       let score: number;
       let feedback: string;
       let misconceptions: MisconceptionTag[] = [];
+      let images: AnswerImage[] = [];
+      let transcript: string | null = null;
       if (q.type === "mcq") {
         const opt = Number(a.option);
         if (!Number.isInteger(opt) || opt < 0 || opt >= (q.options?.length ?? 0)) throw new UserError("Invalid option.");
@@ -802,16 +858,19 @@ export async function submitAssessment(
         feedback = score === 1 ? `Correct. ${key.explanation}` : `${tag ? `**Likely mix-up:** ${sentence(tag.note)}\n\n` : ""}${key.explanation}`;
       } else {
         const blame = [...allowedBlame(q)].map((sid) => snap.skills.find((s) => s.id === sid)!.key);
+        images = cleanImages(a.images);
         const evalOut = await evaluateShortAnswer({
           prompt: q.prompt,
           rubric: key.rubric,
           explanation: key.explanation,
           answer: String(a.text ?? "").slice(0, 3000),
+          images,
           skillKey: snap.skills.find((s) => s.id === q.skill_ids[0])!.key,
           blameableKeys: blame.slice(1),
         });
         score = evalOut.score;
         feedback = evalOut.feedback;
+        transcript = images.length ? (evalOut.transcription ?? null) : null;
         const okIds = allowedBlame(q);
         misconceptions = evalOut.misconceptions
           .map((m) => ({
@@ -827,7 +886,11 @@ export async function submitAssessment(
         course_id: course.id,
         owner_id: course.owner_id,
         group_id: groupId,
-        answer: q.type === "mcq" ? { option: Number(a.option) } : { text: String(a.text).slice(0, 3000) },
+        // photos themselves are not stored; the text and the model's reading of them are
+        answer:
+          q.type === "mcq"
+            ? { option: Number(a.option) }
+            : { text: String(a.text ?? "").slice(0, 3000), ...(images.length ? { image_count: images.length, transcript } : {}) },
         score,
         is_correct: score >= RULES.CORRECT_AT,
         hint_count: hintCount(q.id),

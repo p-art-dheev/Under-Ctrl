@@ -272,6 +272,8 @@ export async function generateLesson(input: LessonInput): Promise<LessonOutT> {
     system:
       `${TEACHER}\nWrite one lesson. Cite sources only by the IDs supplied (e.g. "S1") in the citations arrays; ` +
       "never cite anything else and never write URLs. The sources are short excerpts or summaries, not full pages. " +
+      "When three or more sources are supplied, draw on and cite at least three different ones across the sections and worked example. " +
+      "Write maths as LaTeX in $...$ or $$...$$. " +
       "Scope the lesson to the learner's daily study time. Practice questions test this skill directly.",
     user:
       `Fields: objective, prerequisite_recap, sections[1-3] {heading, body (markdown, code in fences), citations[]}, ` +
@@ -293,13 +295,17 @@ export async function generateLesson(input: LessonInput): Promise<LessonOutT> {
 
 function fixtureLesson(input: LessonInput): LessonOutT {
   const target = FIXTURE_BY_KEY.get(input.reviewOf?.key ?? input.skill.key) ?? FIXTURE_SKILLS[0];
-  const cite = input.sources.slice(0, 1).map((s) => s.id);
   const simplified = input.difficulty === "simplified";
+  const ids = input.sources.map((s) => s.id);
+  // spread the supplied sources over the sections and the example so at least three are cited
   const sections = target.sections.map(([heading, body], i) => ({
     heading,
     body,
-    citations: i === 0 ? cite : [],
+    citations: ids[i] ? [ids[i]] : [],
   }));
+  const n = target.sections.length;
+  const cite = ids.slice(n, Math.max(n + 1, 3));
+  if (!cite.length) cite.push(...ids.slice(0, 1));
   if (simplified || input.reviewOf) sections.unshift({ heading: "Picture it first", body: target.analogy, citations: [] });
   const practice = fixtureQuestions({
     purpose: "practice",
@@ -330,12 +336,24 @@ export interface EvalInput {
   rubric: string[];
   explanation: string;
   answer: string;
+  /** photos of handwritten or typeset work (derivations, diagrams, code) */
+  images?: { mime: string; data: string }[];
   skillKey: string;
   blameableKeys: string[];
 }
 
 export async function evaluateShortAnswer(input: EvalInput) {
   if (isFixture()) {
+    if (input.images?.length && !input.answer.trim()) {
+      return {
+        score: 0,
+        feedback: "Fixture mode cannot read photos. Connect Gemma, or type the answer, to have this graded.",
+        misconceptions: [],
+        confidence: 0,
+        suggested_followup_skill_keys: [],
+        transcription: null,
+      };
+    }
     const text = input.answer.toLowerCase();
     const met = input.rubric.filter((c) => (RUBRIC_KEYWORDS.get(c) ?? []).some((k) => text.includes(k.toLowerCase())));
     const score = input.rubric.length ? met.length / input.rubric.length : 0;
@@ -349,21 +367,26 @@ export async function evaluateShortAnswer(input: EvalInput) {
       misconceptions: [],
       confidence: 0.5,
       suggested_followup_skill_keys: [],
+      transcription: null,
     };
   }
   return generateJson({
     task: "short_answer_evaluation",
     schema: ShortAnswerEvaluation,
     temperature: 0.1,
-    maxOutputTokens: 1500,
+    maxOutputTokens: 2500,
+    images: input.images,
     system:
       `${TEACHER}\nGrade a short answer strictly against the rubric. score is the fraction of rubric criteria met (0-1). ` +
       "Feedback is concise and actionable and does not mention scores. Only propose misconceptions the answer itself shows; " +
-      "never infer personal traits or conditions.",
+      "never infer personal traits or conditions. When photos are attached they show the learner's own working " +
+      "(handwriting, maths derivations, diagrams, code): read them carefully, grade every step against the rubric, " +
+      "and copy what you read into transcription (maths as LaTeX between $...$). If a photo is unreadable, say so in the feedback " +
+      "and grade only what you can read.",
     user:
       `Fields: score, feedback, misconceptions[] {code (snake_case), suspected_skill_key (one of: ${[input.skillKey, ...input.blameableKeys].join(", ")}; or null), note}, ` +
-      `confidence (0-1), suggested_followup_skill_keys[].\nQuestion: ${input.prompt}\nRubric:\n${input.rubric.map((r) => `- ${r}`).join("\n")}\n` +
-      `Reference explanation: ${input.explanation}\n${untrusted("learner_answer", input.answer.slice(0, 3000))}`,
+      `confidence (0-1), suggested_followup_skill_keys[], transcription (string, only when photos are attached, else null).\nQuestion: ${input.prompt}\nRubric:\n${input.rubric.map((r) => `- ${r}`).join("\n")}\n` +
+      `Reference explanation: ${input.explanation}\n${untrusted("learner_answer", input.answer.slice(0, 3000) || "(no typed answer: the work is in the attached photos)")}`,
   });
 }
 

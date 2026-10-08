@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, BookCheck, Clock3, Compass, MessageSquareText, Sparkles, type LucideIcon } from "lucide-react";
+import { ArrowRight, Award, BadgeCheck, BookCheck, Clock3, Compass, MessageSquareText, Sparkles, type LucideIcon } from "lucide-react";
 import { courseContext } from "@/lib/page-context";
 import { dashboardStats, nextAction, skillViews } from "@/lib/services/snapshot";
 import { graphSkills } from "@/lib/graph-view";
+import { recommendCertifications } from "@/lib/certifications";
 import { Card, PageHeader, Tooltip, btn } from "@/components/ui";
 import { MasteryHistory, WeeklyActivity } from "@/components/charts";
 import { SkillGraph } from "@/components/skill-graph";
@@ -34,6 +35,7 @@ export default async function Dashboard() {
   const currentSkill = current ? snap.skills.find((s) => s.id === current.skill_id) : null;
   const nextSkill = next.skillId ? snap.skills.find((s) => s.id === next.skillId) : null;
   const recommended = (nextSkill ? snap.resources.filter((r) => r.skill_id === (nextSkill.remediates_skill_id ?? nextSkill.id)) : []).slice(0, 3);
+  const cert = recommendCertifications({ goal: snap.goal.goal_text, title: snap.course.title, skills: snap.skills.filter((s) => s.kind === "core").map((s) => s.title) }, 1)[0];
   const recent = [
     ...[...new Set(snap.attempts.map((a) => a.group_id))].map((g) => {
       const at = snap.attempts.filter((a) => a.group_id === g);
@@ -93,6 +95,17 @@ export default async function Dashboard() {
           {stats.masteryHistory.length ? <MasteryHistory data={stats.masteryHistory} /> : <p className="mt-2 text-sm text-muted">Appears after your first scored answers.</p>}
         </Card>
       </div>
+
+      {cert ? (
+        <Link href="/certification" className="group mb-6 flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-[var(--shadow)] transition-all hover:border-brand/50 hover:shadow-[var(--shadow-lg)]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Award size={18} aria-hidden /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium text-muted">Certification to aim for</p>
+            <p className="truncate font-medium">{cert.cert.name}</p>
+          </div>
+          <ArrowRight size={16} className="text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand" aria-hidden />
+        </Link>
+      ) : null}
 
       <h2 className="mb-3 text-lg font-semibold">Skill map</h2>
       <div className="mb-6"><SkillGraph skills={graphSkills(snap)} version={snap.course.graph_version} /></div>

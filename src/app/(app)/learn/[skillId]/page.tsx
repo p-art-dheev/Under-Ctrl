@@ -56,6 +56,7 @@ export default async function LearnPage({ params }: { params: Promise<{ skillId:
   view = skillViews(snap).get(skillId)!;
   const versions = snap.lessons.filter((l) => l.skill_id === skillId);
   const sources = snap.resources.filter((r) => lesson.source_keys.includes(r.source_key));
+  const citedKeys = new Set([...lesson.content.sections.flatMap((x) => x.citations), ...lesson.content.worked_example.citations]);
   const citations: CitationTarget[] = sources.map((r) => ({ key: r.source_key, url: r.url, title: r.title }));
   const lessonIds = new Set(versions.map((l) => l.id));
   const groups = [...new Set(snap.questions.filter((q) => q.lesson_id && lessonIds.has(q.lesson_id)).map((q) => q.group_id))];
@@ -149,14 +150,16 @@ export default async function LearnPage({ params }: { params: Promise<{ skillId:
           </section>
 
           <Card>
-            <h2 className="flex items-center gap-2 font-semibold"><BookMarked size={16} aria-hidden /> Sources for this lesson</h2>
-            <p className="mt-1 text-xs text-muted">The lesson text above is generated teaching material. These are the sources it may cite; the quoted lines are short excerpts or summaries, not the full pages.</p>
+            <h2 className="flex items-center gap-2 font-semibold"><BookMarked size={16} aria-hidden /> Sources for this lesson <span className="text-xs font-normal text-muted">({sources.length})</span></h2>
+            <p className="mt-1 text-xs text-muted">The lesson text above is generated teaching material written from these sources. Ones marked “cited” are referenced in the text; the others are further reading. The quoted lines are short excerpts or summaries, not the full pages.</p>
             {sources.length ? (
               <ul className="mt-3 space-y-3">
                 {sources.map((r) => (
                   <li key={r.id} className="text-sm">
                     <a href={r.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-medium text-brand hover:underline">[{r.source_key}] {r.title} <ExternalLink size={12} aria-hidden /></a>
-                    <p className="text-xs text-muted">{r.provider} · {r.origin === "curated" ? "curated resource" : "live search result"} · {r.verification_status}</p>
+                    <p className="text-xs text-muted">
+                      <Pill tone={citedKeys.has(r.source_key) ? "brand" : "muted"}>{citedKeys.has(r.source_key) ? "cited" : "further reading"}</Pill> {r.provider} · {r.origin === "curated" ? "curated resource" : "live search result"} · {r.verification_status}
+                    </p>
                     <blockquote className="mt-1 border-l-2 border-line pl-2 text-xs text-muted">{r.excerpt}</blockquote>
                   </li>
                 ))}

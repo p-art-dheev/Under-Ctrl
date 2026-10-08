@@ -22,3 +22,28 @@ describe("Markdown", () => {
     expect(out.match(/<p/g)?.length).toBe(2);
   });
 });
+
+describe("Markdown maths", () => {
+  it("renders inline, display and bracket-delimited LaTeX with KaTeX", () => {
+    const out = html("Energy is $E = mc^2$ and \\(a^2+b^2=c^2\\).\n\n$$\\int_0^1 x^2\\,dx = \\frac{1}{3}$$\n\n\\[\n\\sum_{i=1}^{n} i\n\\]");
+    expect(out.match(/class="katex"/g)?.length).toBe(4);
+    expect(out).toContain("katex-display");
+    expect(out).not.toContain("$E");
+  });
+  it("leaves currency alone and falls back to source text for broken TeX", () => {
+    const out = html("It costs $5 and then $10 more.");
+    expect(out).not.toContain("katex");
+    expect(html("$\\frac{1$")).toContain("<code");
+  });
+  it("keeps \\nabla and \\neq as maths, not newlines", () => {
+    const out = html("Use $\\nabla f \\neq 0$ here\\nNext line");
+    expect(out).toContain("katex");
+    expect(out).toContain("Next line");
+  });
+  it("renders bold with maths inside and pipe tables", () => {
+    const out = html("**the value $x_1$ matters**\n\n| a | b |\n|---|---|\n| $x^2$ | 2 |");
+    expect(out).toContain("<strong>");
+    expect(out).toContain("<table");
+    expect(out.match(/class="katex"/g)?.length).toBe(2);
+  });
+});
