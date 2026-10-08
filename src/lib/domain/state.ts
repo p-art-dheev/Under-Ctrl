@@ -20,6 +20,8 @@ export interface StateInput {
   active: Set<string>;
   /** skills with a scheduled follow-up assessment */
   followupDue: Set<string>;
+  /** prerequisites treated as ready regardless of mastery (resolved or postponed remediation) */
+  readyOverride?: Set<string>;
 }
 
 export interface SkillStatus {
@@ -45,7 +47,7 @@ export function computeDisplayStates(input: StateInput): Map<string, SkillStatus
     const overridden = Boolean(input.mastery.get(skill.id)?.unlock_override);
     const unmet = prereqs
       .get(skill.id)!
-      .filter((p) => !isReady(input.mastery.get(p) ?? UNASSESSED))
+      .filter((p) => !input.readyOverride?.has(p) && !isReady(input.mastery.get(p) ?? UNASSESSED))
       .map((p) => titles.get(p) ?? p);
     const assessed = isAssessed(m);
     const mastered = isMastered(m);
