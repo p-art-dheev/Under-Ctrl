@@ -1,18 +1,20 @@
-# [Project Name]
+# Under-Ctrl
 
 > [One-line description of the project and what it does.]
 
 ## Team
 
-**Team Name:** [Team Name]
+**Team Name:** Under Ctrl
+
+**College:** Amrita Vishwa Vidyapeetham
 
 
-| Member | Contribution   |
-| ------ | -------------- |
-| [Name] | [Contribution] |
-| [Name] | [Contribution] |
-| [Name] | [Contribution] |
-| [Name] | [Contribution] |
+| Member                    | Role        | Contribution   |
+| ------------------------- | ----------- | -------------- |
+| Dalli Krishan Preetham Reddy | Team Leader | [Contribution] |
+| Pardheev Vatturu          | Team Member | [Contribution] |
+| Irala Charuhas Reddy      | Team Member | [Contribution] |
+| A Prithvi                 | Team Member | [Contribution] |
 
 
 ## Problem Statement
@@ -75,10 +77,10 @@ If a category or technology is not implemented in the project, specify `N/A` ins
 
 ### Team Contributions
 
-- **[Member Name]:** [Contribution]
-- **[Member Name]:** [Contribution]
-- **[Member Name]:** [Contribution]
-- **[Member Name]:** [Contribution]
+- **Dalli Krishan Preetham Reddy (Leader):** [Contribution]
+- **Pardheev Vatturu:** [Contribution]
+- **Irala Charuhas Reddy:** [Contribution]
+- **A Prithvi:** [Contribution]
 
 ## Working Application
 
@@ -140,6 +142,16 @@ cd [project-directory]
 ### Usage
 
 [Explain the basic steps required to use the project.]
+
+## Challenges and Learnings
+
+### Challenges
+
+- [Technical or product challenge encountered and how it was handled]
+
+### Learnings
+
+- [What the team learned]
 
 ## Devpost Submission
 
