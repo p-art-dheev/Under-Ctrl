@@ -1,4 +1,4 @@
--- SkillForge schema, row-level security and the atomic commit function.
+-- Cognify schema, row-level security and the atomic commit function.
 --
 -- Ownership model
 --   * Every row carries owner_id; learners can SELECT only their own rows.

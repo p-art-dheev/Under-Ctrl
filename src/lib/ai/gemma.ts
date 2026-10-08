@@ -3,6 +3,7 @@
 // the transport.
 
 import type { z } from "zod";
+import { appEnv } from "@/lib/env";
 
 const ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models";
 const DEFAULT_MODEL = "gemma-4-26b-a4b-it";
@@ -32,13 +33,13 @@ export interface AiConfig {
 
 export function aiConfig(): AiConfig {
   const hasKey = Boolean(process.env.GEMINI_API_KEY);
-  const forced = process.env.SKILLFORGE_FIXTURE_MODE === "1";
+  const forced = appEnv("FIXTURE_MODE") === "1";
   return {
     provider: "Gemini API (hosted Gemma)",
     model: process.env.GEMMA_MODEL || DEFAULT_MODEL,
     hasKey,
     fixture: forced || !hasKey,
-    fixtureReason: forced ? "SKILLFORGE_FIXTURE_MODE=1" : hasKey ? null : "GEMINI_API_KEY is not set",
+    fixtureReason: forced ? "COGNIFY_FIXTURE_MODE=1" : hasKey ? null : "GEMINI_API_KEY is not set",
   };
 }
 
@@ -128,7 +129,7 @@ export async function callGemma(opts: CallOptions): Promise<string> {
   if (!cfg.model.startsWith("gemma-")) {
     throw new GemmaError(
       "config",
-      `GEMMA_MODEL must be a Gemma model (got "${cfg.model}"). SkillForge does not substitute other models.`,
+      `GEMMA_MODEL must be a Gemma model (got "${cfg.model}"). Cognify does not substitute other models.`,
     );
   }
   try {

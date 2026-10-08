@@ -245,7 +245,7 @@ export function curatedFor(
       title: e.title,
       url: e.url,
       provider: e.provider,
-      excerpt: `${e.summary} (Summary written by the SkillForge team, not quoted from the page.)`,
+      excerpt: `${e.summary} (Summary written by the Cognify team, not quoted from the page.)`,
       format: e.format,
       origin: "curated" as const,
       verification_status: "curated by the team; not fetched or checked at runtime",

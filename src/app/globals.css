@@ -2,7 +2,7 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* SkillForge design tokens: a green palette with light and dark themes.
+/* Cognify design tokens: a green palette with light and dark themes.
    The theme follows the OS until the learner picks one (stored in localStorage). */
 :root {
   --bg: #f6faf7;

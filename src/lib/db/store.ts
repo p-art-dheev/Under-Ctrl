@@ -8,6 +8,7 @@
 
 import { promises as fs } from "node:fs";
 import { supabaseUrl } from "@/lib/supabase-url";
+import { appEnv } from "@/lib/env";
 import path from "node:path";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Course, QuestionKey } from "@/lib/types";
@@ -179,8 +180,8 @@ interface LocalDb {
   commit_keys: { owner_id: string; key: string }[];
 }
 
-const DATA_DIR = process.env.SKILLFORGE_DATA_DIR || path.join(process.cwd(), ".data");
-const DB_FILE = path.join(DATA_DIR, "skillforge-local.json");
+const DATA_DIR = appEnv("DATA_DIR") || path.join(process.cwd(), ".data");
+const DB_FILE = path.join(DATA_DIR, "cognify-local.json");
 
 const g = globalThis as unknown as { __sfLocal?: { db: LocalDb | null; lock: Promise<unknown> } };
 const local = (g.__sfLocal ??= { db: null, lock: Promise.resolve() });

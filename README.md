@@ -1,4 +1,4 @@
-# SkillForge by Under Ctrl
+# Cognify by Under Ctrl
 
 > A Gemma 4-powered adaptive learning platform that turns a learner's goal into a personalized course, tracks understanding through a persistent skill graph, and adjusts lessons when knowledge gaps emerge.
 
@@ -37,7 +37,7 @@ We chose this problem to help learners move from “I want to learn this” to a
 
 ## Solution
 
-SkillForge creates a personalized course from a user's goal and diagnostic answers. Its central component is a persistent skill graph: concepts are nodes, and prerequisite relationships are directed edges.
+Cognify creates a personalized course from a user's goal and diagnostic answers. Its central component is a persistent skill graph: concepts are nodes, and prerequisite relationships are directed edges.
 
 Gemma 4 interprets the goal, proposes the graph, writes diagnostics, lessons and practice, grades short explanations against stored rubrics, tutors, and proposes adaptations. The application records assessment evidence, updates mastery using explicit rules, and applies validated changes to upcoming lessons. Learners can inspect progress, understand why a concept needs review, and resume their saved course across sessions.
 
@@ -125,7 +125,7 @@ flowchart TD
 6. **Adapt the path:** Repeated related mistakes trigger targeted checks. Confirmed gaps can add remediation or modify unfinished lessons, with a visible explanation.
 7. **Resume learning:** The dashboard recommends the next lesson from the saved graph and progress.
 
-For example, picking "10 20 30" for `for i in range(len(nums)): print(i)` and a similar answer in loops practice points twice at the *value-as-index* misconception, which belongs to list indexing. SkillForge asks two indexing questions; if they confirm the gap, a review node is inserted before Loops, the loops lesson is simplified, and follow-up questions decide when the review is resolved. Earlier attempts and completed work remain available.
+For example, picking "10 20 30" for `for i in range(len(nums)): print(i)` and a similar answer in loops practice points twice at the *value-as-index* misconception, which belongs to list indexing. Cognify asks two indexing questions; if they confirm the gap, a review node is inserted before Loops, the loops lesson is simplified, and follow-up questions decide when the review is resolved. Earlier attempts and completed work remain available.
 
 ### Scoring Heuristic
 
@@ -178,7 +178,7 @@ Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack D
 
 ### What is fixture-only or unfinished
 
-- **Fixture mode** (no `GEMINI_API_KEY`, or `SKILLFORGE_FIXTURE_MODE=1`): a hand-written 14-skill Python course, question bank, keyword grader and canned tutor replies. A banner labels it "Sample content"; it never pretends to be Gemma.
+- **Fixture mode** (no `GEMINI_API_KEY`, or `COGNIFY_FIXTURE_MODE=1`): a hand-written 14-skill Python course, question bank, keyword grader and canned tutor replies. A banner labels it "Sample content"; it never pretends to be Gemma.
 - **Local demo store** (no Supabase URL): a JSON file in `.data/` with scrypt-hashed passwords. Labeled in the UI; for demos only, not for real users.
 - **Curated catalog** (no Tavily key): team-written summaries of docs.python.org and pandas pages, labeled "curated".
 - Not built: spaced-repetition scheduling, multiple languages, instructor views, email reminders, deployment.
@@ -260,11 +260,11 @@ Fill in `.env` (never commit it; it is gitignored). Every variable is listed in 
 | `TAVILY_API_KEY` | [app.tavily.com](https://app.tavily.com) → API keys | Curated catalog (labeled "curated") |
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard → Project Settings → API | Local demo store in `.data/` (labeled) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Same page, `service_role` key. Server-only; used only for `sf_commit` and answer keys | Required whenever the Supabase URL is set |
-| `SKILLFORGE_FIXTURE_MODE` | Set to `1` to force sample content even with a Gemini key | Leave empty for live Gemma |
+| `COGNIFY_FIXTURE_MODE` | Set to `1` to force sample content even with a Gemini key | Leave empty for live Gemma |
 
 ### Supabase Setup
 
-1. Supabase dashboard → **SQL Editor** → **New query**, paste `supabase/migrations/20261008000000_skillforge.sql`, **Run** (once).
+1. Supabase dashboard → **SQL Editor** → **New query**, paste `supabase/migrations/20261008000000_cognify.sql`, **Run** (once).
 2. **Authentication → URL Configuration:** add `http://localhost:3000/auth/confirm` (and any deployed URL) to the redirect URLs.
 3. Optional for demos: **Authentication → Sign In / Providers → Email**, turn off **Confirm email**.
 

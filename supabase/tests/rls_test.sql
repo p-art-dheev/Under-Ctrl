@@ -1,4 +1,4 @@
--- Two-user authorization checks for the SkillForge migration.
+-- Two-user authorization checks for the Cognify migration.
 \set ON_ERROR_STOP 1
 insert into auth.users values ('11111111-1111-1111-1111-111111111111','a@x'), ('22222222-2222-2222-2222-222222222222','b@x');
 insert into learning_goals (id, owner_id, goal_text, experience, daily_minutes, explanation_format)

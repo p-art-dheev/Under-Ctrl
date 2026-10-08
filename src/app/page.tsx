@@ -96,7 +96,7 @@ export default async function Home() {
               you give.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted">
-              Describe what you want to learn. SkillForge maps the skills it takes, teaches with cited sources, and reshapes your path when your answers reveal a gap.
+              Describe what you want to learn. Cognify maps the skills it takes, teaches with cited sources, and reshapes your path when your answers reveal a gap.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link href="/signup" className={buttonVariants({ size: "lg" })}>
@@ -162,11 +162,11 @@ export default async function Home() {
       {/* Comparison */}
       <section id="different" className="scroll-mt-20 border-y border-line/70 bg-surface/50 py-20">
         <div className="mx-auto max-w-4xl px-4 md:px-6">
-          <SectionHead eyebrow="Why it's different" title="A fixed course keeps going. SkillForge checks first." />
+          <SectionHead eyebrow="Why it's different" title="A fixed course keeps going. Cognify checks first." />
           <div className="mt-10 overflow-hidden rounded-2xl border border-line bg-surface shadow-[var(--shadow)]">
             <div className="grid grid-cols-2 border-b border-line bg-surface-2/60 text-xs font-semibold uppercase tracking-wider text-muted">
               <div className="px-5 py-3">Typical course</div>
-              <div className="flex items-center gap-2 px-5 py-3 text-brand"><LogoMark className="h-5 w-5 rounded-md [&_svg]:h-3 [&_svg]:w-3" /> SkillForge</div>
+              <div className="flex items-center gap-2 px-5 py-3 text-brand"><LogoMark className="h-5 w-5 rounded-md [&_svg]:h-3 [&_svg]:w-3" /> Cognify</div>
             </div>
             {COMPARE.map(([a, b]) => (
               <div key={a} className="grid grid-cols-2 border-b border-line text-sm last:border-0">
@@ -206,7 +206,7 @@ export default async function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted md:flex-row md:px-6">
           <div className="flex items-center gap-3">
             <LogoMark className="h-7 w-7" />
-            <span>SkillForge by team Under Ctrl · Hacktoberfest Hack Day, Coimbatore 2026</span>
+            <span>Cognify by team Under Ctrl · Hacktoberfest Hack Day, Coimbatore 2026</span>
           </div>
           <div className="flex items-center gap-4">
             <a href="https://github.com/p-art-dheev/Under-Ctrl" className="transition-colors hover:text-ink">GitHub</a>

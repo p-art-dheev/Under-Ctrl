@@ -5,7 +5,7 @@ Two paths. Use the **seeded path** on stage (fast, repeatable); use the **fresh-
 ## Before the demo (seeded path)
 
 ```bash
-npm run seed            # local mode: prints demo@skillforge.test / skillforge-demo
+npm run seed            # local mode: prints demo@cognify.test / cognify-demo
 # Supabase mode:  SEED_PASSWORD='<choose one>' npm run seed
 npm run dev
 ```
@@ -29,5 +29,5 @@ The seed uses the same services as the app with the **labeled sample course** (f
 
 1. Sign up with a new email (confirm it if email confirmation is on).
 2. Enter a goal, e.g. "Learn Python for data analysis, I know some basics, 30 minutes a day".
-3. Watch setup build the graph, run diagnostic batch 1 and 2, attach sources and write the first lesson. With `GEMINI_API_KEY` set and `SKILLFORGE_FIXTURE_MODE` empty this is live Gemma 4; generation takes tens of seconds per step.
+3. Watch setup build the graph, run diagnostic batch 1 and 2, attach sources and write the first lesson. With `GEMINI_API_KEY` set and `COGNIFY_FIXTURE_MODE` empty this is live Gemma 4; generation takes tens of seconds per step.
 4. Continue as in the table above. In live mode question wording differs every time, so pick whichever option confuses a value with its position.

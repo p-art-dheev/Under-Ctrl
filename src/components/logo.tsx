@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
-/** SkillForge mark: three connected skill nodes on a green tile. */
+/** Cognify mark: three connected skill nodes on a green tile. */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <span className={cn("grid h-8 w-8 place-items-center rounded-[10px] bg-gradient-to-br from-brand to-emerald-700 text-white shadow-[0_6px_16px_-6px_color-mix(in_oklab,var(--brand)_70%,transparent)] dark:to-emerald-500 dark:text-[#03140d]", className)}>
@@ -17,9 +17,9 @@ export function LogoMark({ className }: { className?: string }) {
 
 export function Logo({ href = "/", className }: { href?: string; className?: string }) {
   return (
-    <Link href={href} className={cn("flex items-center gap-2.5", className)} aria-label="SkillForge home">
+    <Link href={href} className={cn("flex items-center gap-2.5", className)} aria-label="Cognify home">
       <LogoMark />
-      <span className="font-display text-[1.15rem] font-semibold tracking-tight">SkillForge</span>
+      <span className="font-display text-[1.15rem] font-semibold tracking-tight">Cognify</span>
     </Link>
   );
 }

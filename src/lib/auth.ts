@@ -10,6 +10,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import { supabaseUrl } from "@/lib/supabase-url";
+import { appEnv } from "@/lib/env";
 import { dataMode, localStore, supabaseStore, withLocalDb, type Store } from "@/lib/db/store";
 
 export interface SessionUser {
@@ -39,7 +40,7 @@ const SESSION_DAYS = 14;
 
 async function localSecret(): Promise<string> {
   if (process.env.LOCAL_SESSION_SECRET) return process.env.LOCAL_SESSION_SECRET;
-  const dir = process.env.SKILLFORGE_DATA_DIR || path.join(process.cwd(), ".data");
+  const dir = appEnv("DATA_DIR") || path.join(process.cwd(), ".data");
   const file = path.join(dir, "session-secret");
   try {
     return (await fs.readFile(file, "utf8")).trim();
@@ -70,7 +71,7 @@ async function setLocalSession(userId: string) {
   (await cookies()).set(LOCAL_COOKIE, token, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production" && process.env.SKILLFORGE_INSECURE_COOKIE !== "1",
+    secure: process.env.NODE_ENV === "production" && appEnv("INSECURE_COOKIE") !== "1",
     path: "/",
     maxAge: SESSION_DAYS * 86400,
   });

@@ -8,8 +8,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-process.env.SKILLFORGE_DATA_DIR = mkdtempSync(path.join(tmpdir(), "sf-test-"));
-process.env.SKILLFORGE_FIXTURE_MODE = "1";
+process.env.COGNIFY_DATA_DIR = mkdtempSync(path.join(tmpdir(), "sf-test-"));
+process.env.COGNIFY_FIXTURE_MODE = "1";
 delete process.env.GEMINI_API_KEY;
 delete process.env.TAVILY_API_KEY;
 

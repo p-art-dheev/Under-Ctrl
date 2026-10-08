@@ -25,7 +25,7 @@ const untrusted = (label: string, text: string) =>
   `<untrusted kind="${label}">\n${text.replace(/<\/?untrusted[^>]*>/gi, "")}\n</untrusted>`;
 
 const TEACHER =
-  "You are SkillForge's teaching engine, powered by Gemma. You design concise, accurate learning material " +
+  "You are Cognify's teaching engine, powered by Gemma. You design concise, accurate learning material " +
   "for adult self-learners. Never invent URLs, titles, dates or citations.";
 
 // ---------------------------------------------------------------- 1. goal

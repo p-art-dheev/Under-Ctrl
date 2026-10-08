@@ -1,5 +1,7 @@
 # Claude Build Prompt — SkillForge
 
+> Note: the product was renamed **Cognify** after this brief was written. The spec below keeps its original name.
+
 Copy the prompt below into Claude Pro, or upload this file and ask Claude to follow it. In Claude Code, work directly in the project. In Claude's web interface, ask for complete files in runnable batches and run them locally. Claude writes the software; Gemma 4 powers the application's AI features.
 
 ---

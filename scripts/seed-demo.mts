@@ -15,9 +15,9 @@ import { existsSync } from "node:fs";
 import { randomBytes, scryptSync } from "node:crypto";
 
 if (existsSync(".env")) process.loadEnvFile(".env");
-process.env.SKILLFORGE_FIXTURE_MODE = "1";
+process.env.COGNIFY_FIXTURE_MODE = "1";
 
-const email = (process.env.SEED_EMAIL || "demo@skillforge.test").toLowerCase();
+const email = (process.env.SEED_EMAIL || "demo@cognify.test").toLowerCase();
 const password = process.env.SEED_PASSWORD || "";
 
 const { dataMode, localStore, supabaseAdmin, supabaseStore, withLocalDb } = await import("@/lib/db/store");
@@ -26,7 +26,7 @@ const S = await import("@/lib/services/snapshot");
 
 async function demoStore() {
   if (dataMode() === "local") {
-    const pw = password || "skillforge-demo";
+    const pw = password || "cognify-demo";
     const id = await withLocalDb((db) => {
       const existing = db.users.find((u) => u.email === email);
       if (existing) return existing.id;

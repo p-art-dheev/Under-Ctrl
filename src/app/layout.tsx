@@ -5,7 +5,7 @@ import "@fontsource-variable/bricolage-grotesque";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "SkillForge", template: "%s · SkillForge" },
+  title: { default: "Cognify", template: "%s · Cognify" },
   description:
     "Adaptive learning workspace: a persistent skill graph that changes with your assessment evidence.",
 };
