@@ -866,7 +866,7 @@ export async function submitAssessment(
       mastery_events: rows(events),
     },
   };
-  let state: CourseState = { ...course.state };
+  const state: CourseState = { ...course.state };
   let expectedVersion: number | null = null;
   let outcome: string | null = null;
   const adaptations: AdaptationEvent[] = [];
