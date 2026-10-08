@@ -171,7 +171,7 @@ Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack D
 | RLS and `sf_commit` | `scripts/test-sql.sh` passes on Postgres 16 with a Supabase auth stub |
 | Production build and lint | `npm run build` and `npm run lint` pass |
 | UI journey | Walked through in Chromium with Playwright in fixture/local mode |
-| Live Gemma 4 (`gemma-4-26b-a4b-it`) | Called live with the team key from a script: goal interpretation, graph proposal, both diagnostic batches and short-answer grading returned valid output (each step takes roughly 10–30 s). The parsing fixes listed under Challenges came from these runs. A full live run through lessons and the tutor is still in progress |
+| Live Gemma 4 (`gemma-4-26b-a4b-it`) | A full live run with the team key (local store, curated sources) completed: goal → graph → both diagnostics → short-answer grading → sources → first lesson with citations → tutor reply → graded practice, in about 2.5 minutes. The parsing fixes listed under Challenges came from these runs. The live adaptation path (check and remediation) is covered by tests with sample content, not yet by a live run |
 | Supabase Auth and Postgres in a real project | Not yet run: the build container could not reach supabase.co. Apply the migration and follow [the auth checklist](docs/auth-checklist.md) |
 | Tavily live search | Not yet run for the same reason; the curated catalog is used without a key |
 | Deployment, demo video | Pending |
