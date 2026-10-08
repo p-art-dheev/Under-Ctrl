@@ -221,13 +221,16 @@ const pct = (m: MasteryState) => (m.score === null ? "unassessed" : `${Math.roun
 export function whyFor(snap: Snapshot, views: Map<string, SkillView>, v: SkillView): string[] {
   const lines: string[] = [];
   const prereqs = v.prerequisites.map((id) => views.get(id)!).filter(Boolean);
-  if (prereqs.length === 0) lines.push("It has no prerequisites, so it is a starting point.");
+  if (v.skill.kind === "remediation") {
+    const unlocks = v.dependents.map((id) => views.get(id)?.skill.title).filter(Boolean).join(", ");
+    lines.push(`It is a short review inserted before ${unlocks || "your next lesson"}, which waits on it.`);
+  } else if (prereqs.length === 0) lines.push("It has no prerequisites, so it is a starting point.");
   else
     lines.push(
       `Prerequisites: ${prereqs.map((p) => `${p.skill.title} (${p.remediation ? p.remediation : pct(p.mastery)})`).join("; ")}.`,
     );
   if (v.mastery.score !== null) lines.push(`Your evidence on this skill so far: ${pct(v.mastery)}.`);
-  if (v.skill.difficulty === "simplified") lines.push("The next lesson was simplified after a confirmed prerequisite gap.");
+  if (v.skill.kind === "core" && v.skill.difficulty === "simplified") lines.push("The next lesson was simplified after a confirmed prerequisite gap.");
   const event = [...snap.adaptations].reverse().find((e) => e.patch && JSON.stringify(e.patch).includes(v.skill.id));
   if (event) lines.push(`Path change: ${event.reason}`);
   lines.push(`Goal link: ${v.skill.goal_contribution}`);

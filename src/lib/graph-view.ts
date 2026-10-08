@@ -12,7 +12,9 @@ export function graphSkills(snap: Snapshot): GraphSkill[] {
   const rowCount = new Map<number, number>();
   return planOrder(snap).map((s) => {
     const v = views.get(s.id)!;
-    const d = depth.get(s.id) ?? 0;
+    // a review node has no prerequisites of its own, so draw it just above the skill it unlocks
+    const deps = snap.edges.filter((e) => e.prerequisite_id === s.id).map((e) => depth.get(e.dependent_id) ?? 1);
+    const d = s.kind === "remediation" && deps.length ? Math.max(0, Math.min(...deps) - 1) : depth.get(s.id) ?? 0;
     const row = rowCount.get(d) ?? 0;
     rowCount.set(d, row + 1);
     const qIds = new Set(snap.questions.filter((q) => q.skill_ids[0] === (s.remediates_skill_id ?? s.id)).map((q) => q.id));

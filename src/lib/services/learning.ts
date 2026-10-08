@@ -788,7 +788,8 @@ export async function submitAssessment(
         score = opt === key.correct_option ? 1 : 0;
         const tag = key.option_tags[String(opt)];
         if (score === 0 && tag) misconceptions = [tag];
-        feedback = score === 1 ? `Correct. ${key.explanation}` : `${tag ? `${tag.note} ` : ""}${key.explanation}`;
+        const sentence = (t: string) => (/[.!?]$/.test(t.trim()) ? t.trim() : `${t.trim()}.`);
+        feedback = score === 1 ? `Correct. ${key.explanation}` : `${tag ? `**Likely mix-up:** ${sentence(tag.note)}\n\n` : ""}${key.explanation}`;
       } else {
         const blame = [...allowedBlame(q)].map((sid) => snap.skills.find((s) => s.id === sid)!.key);
         const evalOut = await evaluateShortAnswer({
