@@ -26,3 +26,4 @@ npm-debug.log*
 
 # Local demo data store (created at runtime when Supabase is not configured)
 .data/
+.claude/worktrees/
