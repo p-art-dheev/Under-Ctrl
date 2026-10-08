@@ -15,3 +15,14 @@ build/
 Thumbs.db
 .vscode/
 .idea/
+
+# Next.js / TypeScript
+.next/
+out/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+npm-debug.log*
+
+# Local demo data store (created at runtime when Supabase is not configured)
+.data/
