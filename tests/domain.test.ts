@@ -351,3 +351,29 @@ describe("source reference validation", () => {
     expect(r.rejected).toEqual(["https://made-up.example", "S7"]);
   });
 });
+
+describe("extractJson", () => {
+  it("keeps code fences that live inside JSON strings", async () => {
+    const { extractJson } = await import("@/lib/ai/gemma");
+    const reply = '{"questions":[{"prompt":"What prints?\\n```python\\nprint(1)\\n```"}]}';
+    expect(extractJson(reply)).toEqual({ questions: [{ prompt: "What prints?\n```python\nprint(1)\n```" }] });
+    expect(extractJson('Here you go:\n```json\n{"a":1}\n```')).toEqual({ a: 1 });
+  });
+});
+
+describe("question schema", () => {
+  it("resolves options named by text or letter and drops tags it cannot place", async () => {
+    const { QuestionOut } = await import("@/lib/ai/schemas");
+    const q = QuestionOut.parse({
+      skill_key: "loops", type: "mcq", difficulty: "easy", prompt: "What prints?",
+      options: ["10 20 30", "0 1 2", "1 2 3"], correct_option: "B",
+      distractor_tags: [
+        { option: "10 20 30", code: "Value As Index", suspected_skill_key: "list-indexing", note: "value used as position" },
+        { option: 7, code: "x", suspected_skill_key: null, note: "out of range" },
+      ],
+      rubric: [], hint: "positions", explanation: "range gives indexes",
+    });
+    expect(q.correct_option).toBe(1);
+    expect(q.distractor_tags).toEqual([{ option: 0, code: "value_as_index", suspected_skill_key: "list-indexing", note: "value used as position" }]);
+  });
+});

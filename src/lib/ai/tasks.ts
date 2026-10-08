@@ -135,7 +135,7 @@ export async function generateQuestions(input: QuestionInput): Promise<QuestionO
     user:
       `Return {questions: [...]}, exactly ${input.count} items. Each: skill_key, type ("mcq"|"short"), difficulty, prompt ` +
       `(markdown, code in fences), options (3-5 strings, null for short), correct_option (index, null for short), ` +
-      `distractor_tags[] {option, code, suspected_skill_key (one of: ${input.blameableKeys.join(", ") || "none"}; or null), note}, ` +
+      `distractor_tags[] {option (0-based index of a WRONG option, a number), code (snake_case), suspected_skill_key (one of: ${input.blameableKeys.join(", ") || "none"}; or null), note}, ` +
       `rubric (1-4 criteria for short answers, [] for mcq), hint (does not reveal the answer), explanation.\n` +
       `Course goal: ${input.goal}\nSkills (use only these keys):\n` +
       input.skills.map((s) => `- ${s.key}: ${s.title}. ${s.objective}`).join("\n") +
@@ -277,7 +277,7 @@ export async function generateLesson(input: LessonInput): Promise<LessonOutT> {
       `Fields: objective, prerequisite_recap, sections[1-3] {heading, body (markdown, code in fences), citations[]}, ` +
       `worked_example {title, body, citations[]}, exercise {prompt, rubric[1-4], hint}, practice[3-5] questions ` +
       `(same question format: skill_key "${input.skill.key}", type, difficulty, prompt, options, correct_option, ` +
-      `distractor_tags[] {option, code, suspected_skill_key (one of: ${input.blameableKeys.join(", ") || "none"}; or null), note}, rubric, hint, explanation). ` +
+      `distractor_tags[] {option (0-based index of a WRONG option, a number), code (snake_case), suspected_skill_key (one of: ${input.blameableKeys.join(", ") || "none"}; or null), note}, rubric, hint, explanation). ` +
       `Include at least 2 multiple-choice questions whose distractors are tagged with misconceptions.\n` +
       `Goal: ${input.goal}\nSkill: ${input.skill.title} (${input.skill.key}). Objective: ${input.skill.objective}\n` +
       (input.reviewOf

@@ -9,7 +9,17 @@ const key = z
   .trim()
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "lowercase-kebab-case key")
   .max(60);
-const unit = z.number().min(0).max(1);
+// Gemma sometimes quotes numbers ("2") or names options by letter ("B");
+// accept those spellings and validate the number as usual.
+const lenient = (v: unknown) => {
+  if (typeof v !== "string") return v;
+  const t = v.trim();
+  if (/^-?\d+(\.\d+)?$/.test(t)) return Number(t);
+  if (/^[A-Ea-e]$/.test(t)) return t.toUpperCase().charCodeAt(0) - 65;
+  return v;
+};
+const num = (schema: z.ZodNumber) => z.preprocess(lenient, schema);
+const unit = num(z.number().min(0).max(1));
 
 // 1. Goal interpretation
 export const GoalInterpretation = z.object({
@@ -29,7 +39,7 @@ export const GraphProposal = z.object({
         title: text(80),
         objective: text(300),
         goal_contribution: text(300),
-        estimated_minutes: z.number().int().min(5).max(180),
+        estimated_minutes: num(z.number().int().min(5).max(180)),
         search_query: text(160),
       }),
     )
@@ -39,25 +49,65 @@ export const GraphProposal = z.object({
 });
 
 // 3. Diagnostic / check / practice / follow-up questions
+const snake = (v: unknown) =>
+  typeof v === "string" ? v.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 40) : v;
+
 export const MisconceptionOut = z.object({
-  code: z
+  code: z.preprocess(snake, z
     .string()
     .trim()
     .regex(/^[a-z0-9_]+$/, "snake_case code")
-    .max(40),
+    .max(40)),
   suspected_skill_key: key.nullable(),
   note: text(200),
 });
 
-export const QuestionOut = z
+/**
+ * Normalise a raw question before validation. Gemma often names options by
+ * text or letter instead of index; resolve those, and drop distractor tags that
+ * still don't point at a wrong option (tags are hints for gap detection, so a
+ * missing tag is safer than a failed generation).
+ */
+function normaliseQuestion(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object") return raw;
+  const q = { ...(raw as Record<string, unknown>) };
+  const options = Array.isArray(q.options) ? (q.options as unknown[]).map((o) => String(o).trim()) : null;
+  const toIndex = (v: unknown): number | null => {
+    const n = lenient(v);
+    if (typeof n === "number" && Number.isInteger(n)) return options && n >= 0 && n < options.length ? n : null;
+    if (typeof v === "string" && options) {
+      const t = v.trim().replace(/^[A-Ea-e][).:]\s*/, "");
+      const i = options.findIndex((o) => o === t || o === v.trim());
+      return i === -1 ? null : i;
+    }
+    return null;
+  };
+  if (options && q.correct_option !== null && q.correct_option !== undefined) q.correct_option = toIndex(q.correct_option) ?? q.correct_option;
+  if (Array.isArray(q.distractor_tags)) {
+    q.distractor_tags = (q.distractor_tags as Record<string, unknown>[])
+      .filter((t) => t && typeof t === "object")
+      .map((t) => ({
+        ...t,
+        option: toIndex(t.option),
+        code: typeof t.code === "string" ? t.code.trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 40) : t.code,
+      }))
+      .filter((t) => t.option !== null && t.option !== q.correct_option)
+      .slice(0, 5);
+  } else if (q.distractor_tags === undefined || q.distractor_tags === null) {
+    q.distractor_tags = [];
+  }
+  return q;
+}
+
+export const QuestionOut = z.preprocess(normaliseQuestion, z
   .object({
     skill_key: key,
     type: z.enum(["mcq", "short"]),
     difficulty: z.enum(["easy", "medium", "hard"]),
     prompt: text(1200),
     options: z.array(text(300)).min(3).max(5).nullable(),
-    correct_option: z.number().int().min(0).max(4).nullable(),
-    distractor_tags: z.array(MisconceptionOut.extend({ option: z.number().int().min(0).max(4) })).max(5),
+    correct_option: num(z.number().int().min(0).max(4)).nullable(),
+    distractor_tags: z.array(MisconceptionOut.extend({ option: num(z.number().int().min(0).max(4)) })).max(5),
     rubric: z.array(text(240)).max(5),
     hint: text(400),
     explanation: text(800),
@@ -73,7 +123,7 @@ export const QuestionOut = z
     } else if (q.rubric.length === 0) {
       ctx.addIssue({ code: "custom", message: "short questions need a rubric" });
     }
-  });
+  }));
 export type QuestionOutT = z.infer<typeof QuestionOut>;
 
 export const QuestionSet = z.object({ questions: z.array(QuestionOut).min(1).max(6) });
@@ -116,13 +166,13 @@ export const ShortAnswerEvaluation = z.object({
 // 7. Tutor reply
 export const TutorReply = z.object({
   reply: text(2400),
-  hint_level: z.number().int().min(1).max(4),
+  hint_level: num(z.number().int().min(1).max(4)),
   cited_source_ids: cited,
 });
 
 // 8. Adaptation proposal
 export const AdaptationProposal = z.object({
-  expected_graph_version: z.number().int().min(1),
+  expected_graph_version: num(z.number().int().min(1)),
   patch: z.object({
     op: z.literal("insert_remediation"),
     remediation_title: text(80),

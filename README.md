@@ -1,8 +1,8 @@
-# Under-Ctrl
+# SkillForge by Under Ctrl
 
 > A Gemma 4-powered adaptive learning platform that turns a learner's goal into a personalized course, tracks understanding through a persistent skill graph, and adjusts lessons when knowledge gaps emerge.
 
-**Status:** Project design draft. Implementation, deployment, test results, and individual contributions have not yet been confirmed. This README describes the proposed product and marks submission details as pending.
+**Status:** Working prototype built at Hack Day. The full learner journey runs locally and is covered by automated tests; Gemma 4 has been called live with the team's key. Supabase and Tavily are wired up but could not be reached from the build environment, so their first end-to-end run happens on a team machine (see [What is verified](#what-is-verified-and-what-is-not)). Deployment, demo video and Devpost link are still pending.
 
 ## Team
 
@@ -17,7 +17,7 @@
 | Irala Charuhas Reddy | Team Member | Proposed: authentication, database, and persistence |
 | A Prithvi | Team Member | Proposed: resource retrieval, assessment workflow, and integration testing |
 
-Contribution assignments are suggestions; replace them with actual contributions before submission.
+Contribution assignments are the team's initial split; replace them with actual contributions before submission.
 
 ## Problem Statement
 
@@ -37,9 +37,9 @@ We chose this problem to help learners move from “I want to learn this” to a
 
 ## Solution
 
-Under-Ctrl is designed to create a personalized course from a user's goal and diagnostic answers. Its central component is a persistent skill graph: concepts are nodes, and prerequisite relationships are directed edges.
+SkillForge creates a personalized course from a user's goal and diagnostic answers. Its central component is a persistent skill graph: concepts are nodes, and prerequisite relationships are directed edges.
 
-Gemma 4 helps generate lessons, evaluate explanations, and suggest likely misconceptions. The application records assessment evidence, updates mastery using explicit rules, and applies validated changes to upcoming lessons. Learners can inspect progress, understand why a concept needs review, and resume their saved course across sessions.
+Gemma 4 interprets the goal, proposes the graph, writes diagnostics, lessons and practice, grades short explanations against stored rubrics, tutors, and proposes adaptations. The application records assessment evidence, updates mastery using explicit rules, and applies validated changes to upcoming lessons. Learners can inspect progress, understand why a concept needs review, and resume their saved course across sessions.
 
 ### Key Features
 
@@ -55,19 +55,19 @@ Gemma 4 helps generate lessons, evaluate explanations, and suggest likely miscon
 
 ## Innovation and Differentiation
 
-The proposed differentiator is the connection between assessment evidence and a durable learning structure. The graph records what the learner has attempted and how the course should respond, rather than serving only as a visual roadmap.
+The differentiator is the connection between assessment evidence and a durable learning structure. The graph records what the learner has attempted and how the course should respond, rather than serving only as a visual roadmap.
 
 1. **Prerequisite-aware adaptation:** Mistakes in an advanced topic prompt targeted prerequisite checks before the platform changes the path.
 2. **Visible adaptation reasons:** Curriculum changes record the relevant evidence and a concise explanation the learner can inspect.
 3. **Persistent learning history:** Updates preserve completed work, previous attempts, and stable skill identities.
 
-The intended result is a continuous assessment-and-teaching loop. Learning gains and comparative advantages remain to be evaluated; this draft does not claim proven effectiveness or uniqueness across all existing platforms.
+The result is a continuous assessment-and-teaching loop. Learning gains have not been measured; we make no claim of proven effectiveness or uniqueness across existing platforms.
 
 ## Technical Implementation
 
 ### Architecture
 
-The diagram shows the proposed system and feedback loop.
+The diagram shows the system and its feedback loop.
 
 ```mermaid
 flowchart TD
@@ -89,18 +89,31 @@ flowchart TD
 
 ### Technology Stack
 
-No implementation has been supplied for verification. Categories therefore list `N/A` for confirmed implementation and identify the planned choices.
-
 | Category | Technologies |
 | --- | --- |
-| Frontend | N/A — planned: Next.js, React, TypeScript, Tailwind CSS, React Flow, Recharts |
-| Backend | N/A — planned: Next.js server routes/actions and Zod validation |
-| Database | N/A — planned: Supabase Postgres with row-level security |
-| AI / ML | N/A — planned: Gemma 4 through a configurable server-side adapter |
-| Infrastructure | N/A — hosting and deployment not yet confirmed |
-| APIs / Services | N/A — planned: Supabase Auth, hosted Gemma inference through the Gemini API, Tavily search |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, React Flow (`@xyflow/react`), Recharts, lucide-react, Geist font |
+| Backend | Next.js server components and server actions; Zod validation of every form input and every model output |
+| Database | Supabase Postgres with row-level security; all privileged writes go through one `sf_commit` function |
+| AI / ML | Gemma 4 (`gemma-4-26b-a4b-it`) through the Gemini API, server-side only |
+| APIs / Services | Supabase Auth, Gemini API, Tavily search (optional) |
+| Testing | Vitest (domain rules and the full learner journey), SQL/RLS checks on Postgres 16 in Docker, Playwright walk-through of the UI |
+| Infrastructure | Not deployed yet; runs with `npm run dev` / `npm start` |
 
-Replace these entries with technologies actually implemented before submission.
+### Code Map
+
+| Path | What it holds |
+| --- | --- |
+| `src/lib/domain/` | Pure rules: DAG validation and patching, mastery heuristic, display states, gap detection and remediation planning, citation sanitising |
+| `src/lib/ai/` | Gemma client (`gemma.ts`), Zod schemas for the 8 tasks, task prompts (`tasks.ts`), and the sample course used in fixture mode |
+| `src/lib/search.ts` | Tavily search and the curated catalog of docs.python.org and pandas links |
+| `src/lib/db/store.ts` | Supabase store (RLS reads, `sf_commit` writes) and the local JSON demo store |
+| `src/lib/services/` | The learner journey: onboarding, resumable setup, lessons, hints, tutor, grading, adaptation, dashboard stats |
+| `src/app/` | Pages: landing, auth, onboarding, setup, assessment, lesson, skill map, course, dashboard, resources, settings |
+| `supabase/migrations/` | Tables, RLS policies, grants and `sf_commit` |
+| `supabase/tests/`, `scripts/test-sql.sh` | Two-user RLS checks |
+| `tests/` | Domain tests and the end-to-end journey test |
+| `scripts/seed-demo.mts` | Seeds the demo learner |
+| `docs/` | Build brief, [demo script](docs/demo-script.md), [walkthrough](docs/walkthrough.md), [two-user auth checklist](docs/auth-checklist.md) |
 
 ### How It Works
 
@@ -112,7 +125,21 @@ Replace these entries with technologies actually implemented before submission.
 6. **Adapt the path:** Repeated related mistakes trigger targeted checks. Confirmed gaps can add remediation or modify unfinished lessons, with a visible explanation.
 7. **Resume learning:** The dashboard recommends the next lesson from the saved graph and progress.
 
-For example, difficulty with nested loops may lead to an indexing check. If it confirms a gap, indexing practice is scheduled before the next dependent lesson. Earlier attempts and completed work remain available.
+For example, picking "10 20 30" for `for i in range(len(nums)): print(i)` and a similar answer in loops practice points twice at the *value-as-index* misconception, which belongs to list indexing. SkillForge asks two indexing questions; if they confirm the gap, a review node is inserted before Loops, the loops lesson is simplified, and follow-up questions decide when the review is resolved. Earlier attempts and completed work remain available.
+
+### Scoring Heuristic
+
+Transparent rules in `src/lib/domain/mastery.ts` and `adaptation.ts`. They are a heuristic, not a validated psychometric model.
+
+- **Answer score `r`:** MCQ is 1 or 0. Short answers get the fraction of rubric points Gemma marks as met (fixture mode uses keyword matching). A hint multiplies `r` by 0.7.
+- **Mastery estimate `m`:** the first answer sets `m = r`; each later one gives `m = 0.7·m + 0.3·r`. Only answers that directly test a skill count as evidence.
+- **Mastered:** `m ≥ 0.8` with at least 3 answers, 2 of them correct without hints.
+- **Ready (unlocks dependents):** `m ≥ 0.65` with at least 2 answers, or an explicit learner override (recorded).
+- **Unassessed** skills have no score and are never treated as failures; fewer than 3 answers is shown as provisional.
+- **Gap suspected:** 2 or more low answers carrying a misconception code that points at the same other skill → a 2-question targeted check on that skill.
+- **Gap confirmed:** check mean below 0.6 → one remediation node, edge into the dependent skill, simplified dependent lesson, scheduled follow-up. An open remediation for the same gap is reused, never duplicated.
+- **Review resolved:** follow-up mean of 0.8 or more.
+
 
 ### Technical Decisions
 
@@ -128,31 +155,46 @@ For example, difficulty with nested loops may lead to an indexing check. If it c
 
 ## Implementation During the Hackathon
 
-**Confirmed completed work:** N/A — the available material defines the product and build plan; a working application has not been provided for verification.
+Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack Day (2026-10-08), following the build brief in `docs/Project-Deliverables.txt`. The git history shows the order:
 
-| Time | Planned work |
+1. Domain rules with unit tests: DAG validation, mastery, display states, adaptation.
+2. Gemma task layer with Zod schemas and one repair attempt; curated resource catalog and Tavily search; Supabase schema with RLS and the `sf_commit` function, checked on Postgres.
+3. Data stores, authentication, and the learning services, with an end-to-end journey test.
+4. The web interface: onboarding, resumable setup, assessments, lesson workspace with tutor, skill map, dashboard, resources, settings.
+5. Seed script, demo docs, fixes from live Gemma runs, layout polish.
+
+### What is verified and what is not
+
+| Item | Status |
 | --- | --- |
-| 0:00–0:45 | Scaffold, database, authentication, and a live Gemma connection check |
-| 0:45–1:45 | Goal onboarding, diagnostics, and persistent graph creation |
-| 1:45–2:45 | Resource retrieval, graph visualization, and the first lesson |
-| 2:45–4:00 | Assessments, mastery updates, targeted checks, and remediation |
-| 4:00–5:00 | Dashboard, contextual tutor, and adaptation explanations |
-| 5:00–6:00 | Integration checks, persistence verification, demo preparation, and polish |
+| Domain rules; journey (diagnostic → mistake → check → remediation → follow-up); duplicate submissions; second-user isolation | `npm test` passes (local store, fixture content) |
+| RLS and `sf_commit` | `scripts/test-sql.sh` passes on Postgres 16 with a Supabase auth stub |
+| Production build and lint | `npm run build` and `npm run lint` pass |
+| UI journey | Walked through in Chromium with Playwright in fixture/local mode |
+| Live Gemma 4 (`gemma-4-26b-a4b-it`) | Called live with the team key from a script: goal interpretation, graph proposal, both diagnostic batches and short-answer grading returned valid output (each step takes roughly 10–30 s). The parsing fixes above came from these runs. A full live run through lessons and the tutor is still in progress |
+| Supabase Auth and Postgres in a real project | Not yet run: the build container could not reach supabase.co. Apply the migration and follow [the auth checklist](docs/auth-checklist.md) |
+| Tavily live search | Not yet run for the same reason; the curated catalog is used without a key |
+| Deployment, demo video | Pending |
 
-Update this section after Hack Day with completed functionality, actual test results, and remaining limitations.
+### What is fixture-only or unfinished
+
+- **Fixture mode** (no `GEMINI_API_KEY`, or `SKILLFORGE_FIXTURE_MODE=1`): a hand-written 14-skill Python course, question bank, keyword grader and canned tutor replies. A banner labels it "Sample content"; it never pretends to be Gemma.
+- **Local demo store** (no Supabase URL): a JSON file in `.data/` with scrypt-hashed passwords. Labeled in the UI; for demos only, not for real users.
+- **Curated catalog** (no Tavily key): team-written summaries of docs.python.org and pandas pages, labeled "curated".
+- Not built: spaced-repetition scheduling, multiple languages, instructor views, email reminders, deployment.
 
 ### Team Contributions
 
-- **Dalli Krishan Preetham Reddy (Leader):** Proposed: architecture, Gemma integration, and adaptation logic. Actual contribution pending confirmation.
-- **Pardheev Vatturu:** Proposed: frontend, dashboard, and skill graph. Actual contribution pending confirmation.
-- **Irala Charuhas Reddy:** Proposed: authentication, schema, and learner-state persistence. Actual contribution pending confirmation.
-- **A Prithvi:** Proposed: source retrieval, assessments, and integration testing. Actual contribution pending confirmation.
+- **Dalli Krishan Preetham Reddy (Leader):** Planned: architecture, Gemma integration, and adaptation logic. Actual contribution pending confirmation.
+- **Pardheev Vatturu:** Planned: frontend, dashboard, and skill graph. Actual contribution pending confirmation.
+- **Irala Charuhas Reddy:** Planned: authentication, schema, and learner-state persistence. Actual contribution pending confirmation.
+- **A Prithvi:** Planned: source retrieval, assessments, and integration testing. Actual contribution pending confirmation.
 
 ## Working Application
 
 **Live Application:** Pending deployment.
 
-The intended test flow is account creation → goal → diagnostic → skill graph → lesson and quiz → targeted remediation → updated dashboard. Refreshing and signing back in should preserve the course and progress.
+Test flow: account creation → goal → diagnostic → skill graph → lesson and quiz → targeted remediation → updated dashboard. Refreshing and signing back in preserves the course and progress. See [docs/walkthrough.md](docs/walkthrough.md).
 
 Add the functional deployment URL and required access instructions once verified.
 
@@ -160,112 +202,108 @@ Add the functional deployment URL and required access instructions once verified
 
 **Demo Video:** Pending recording and upload.
 
-The planned demonstration covers a Python data-analysis goal, diagnostic-generated graph, lesson sources, an indexing-related mistake, a targeted prerequisite check, and a visible curriculum change. It ends with a follow-up assessment and refresh to demonstrate persistence.
-
-Label seeded demo data clearly and distinguish it from a fresh-account walkthrough.
+The 90-second script is in [docs/demo-script.md](docs/demo-script.md): a Python data-analysis goal, diagnostic-generated graph, lesson sources, an indexing-related mistake, a targeted prerequisite check, the remediation and its reason, a follow-up, and a refresh to show persistence. It has separate seeded and fresh-account paths; seeded data is sample content and is labeled as such.
 
 ## Open Source and AI Usage
 
 ### AI / Models
 
-- **Gemma 4:** Planned runtime model for goal interpretation, diagnostics, curriculum proposals, explanations, short-answer feedback, tutoring, and adaptation rationales.
-- **Claude Pro:** Intended development assistant using the project build prompt. Record actual development assistance before submission; Claude is not the proposed runtime model.
-
-Planned hosted model: `gemma-4-26b-a4b-it`. Verify availability in the provider account and document the exact model used in the final implementation.
+- **Gemma 4 (`gemma-4-26b-a4b-it`)**, Google, via the Gemini API: the only model the app calls at runtime. Used for goal interpretation, skill-graph proposals, diagnostic and practice questions, ranking search results, lesson writing, short-answer grading against rubrics, the tutor, and adaptation rationales. Every reply is parsed as JSON, validated with Zod, repaired at most once, and checked again against stored data (known skill IDs, known source IDs, DAG rules) before anything is saved. Grading rules, mastery updates and graph changes are decided by application code, not by the model. `GEMMA_MODEL` must start with `gemma-`; the app refuses other models.
+- **Claude (Claude Code):** development assistant used by the team to help write code and documentation during the event. It is not part of the running application.
 
 ### Open Source Components
 
-- **Next.js and React:** Planned web application and component framework.
-- **TypeScript and Tailwind CSS:** Planned type checking and styling.
-- **React Flow:** Planned interactive graph rendering.
-- **Recharts:** Planned dashboard charts.
-- **Zod:** Planned request and AI-output validation.
-- **Supabase:** Planned authentication and Postgres persistence.
-- **Dataset:** N/A — no external training dataset is specified. The MVP uses learner responses and retrieved or curated resources.
-- **API / Service:** Planned hosted Gemma inference and Tavily search.
+| Component | Role | License |
+| --- | --- | --- |
+| Next.js, React | Web framework and UI | MIT |
+| TypeScript | Type checking | Apache-2.0 |
+| Tailwind CSS | Styling | MIT |
+| React Flow (`@xyflow/react`) | Skill graph rendering | MIT |
+| Recharts | Dashboard charts | MIT |
+| Zod | Input and model-output validation | MIT |
+| `@supabase/supabase-js`, `@supabase/ssr` | Auth and database client | MIT |
+| lucide-react | Icons | ISC |
+| Geist | Font | SIL OFL 1.1 |
+| Vitest, tsx, ESLint | Tests, scripts, linting | MIT |
 
-Retain required notices for the exact dependency versions used. Cite educational resources and respect their permissions. Document applicable model licensing, provider terms, and content attribution in the final repository.
+- **Services:** Supabase (Auth, Postgres), Gemini API (Gemma 4 inference), Tavily (optional web search), each under its provider's terms.
+- **Gemma 4** is used under the [Gemma terms of use](https://ai.google.dev/gemma/terms).
+- **Learning resources:** the curated catalog links to docs.python.org and pandas.pydata.org. Summaries are written by the team; the app links to the originals and does not copy them.
+- **Dataset:** none. The app uses learner responses and retrieved or curated resources.
 
 ## Setup and Usage
 
-These are proposed steps for the planned Next.js implementation. Repository structure, package scripts, and commands have not yet been tested.
-
 ### Prerequisites
 
-- Node.js compatible with the implemented Next.js release, and npm.
-- A Supabase project with authentication configured and migrations applied.
-- Hosted Gemma 4 access and an API key.
-- A Tavily key for live search, or an explicitly labeled curated catalog.
-- The source repository and `.env.example` file.
+- Node.js 20.9 or newer (built and tested with Node 22) and npm.
+- Optional for full mode: a Supabase project, a Gemini API key, a Tavily key. Without them the app still runs in clearly labeled demo mode.
 
 ### Installation
 
-Replace the URL and directory with the final project details.
-
 ```bash
-git clone <repository-url>
-cd <project-directory>
+git clone https://github.com/p-art-dheev/Under-Ctrl.git
+cd Under-Ctrl
 npm install
+cp .env.example .env
 ```
 
-Apply the project's SQL migrations to Supabase, configure authentication callback URLs, and enable row-level security policies. Add exact migration instructions when the repository structure is finalized.
+### Environment Variables and Where Keys Come From
 
-### Environment Variables
+Fill in `.env` (never commit it; it is gitignored). Every variable is listed in `.env.example`.
 
-Create `.env.local` from `.env.example` and provide:
+| Variable | Where to get it | Without it |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | [Google AI Studio](https://aistudio.google.com/apikey) → Create API key | Fixture content (labeled "Sample content") |
+| `GEMMA_MODEL` | Default `gemma-4-26b-a4b-it`; `gemma-4-31b-it` also documented | Default is used |
+| `TAVILY_API_KEY` | [app.tavily.com](https://app.tavily.com) → API keys | Curated catalog (labeled "curated") |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase dashboard → Project Settings → API | Local demo store in `.data/` (labeled) |
+| `SUPABASE_SERVICE_ROLE_KEY` | Same page, `service_role` key. Server-only; used only for `sf_commit` and answer keys | Required whenever the Supabase URL is set |
+| `SKILLFORGE_FIXTURE_MODE` | Set to `1` to force sample content even with a Gemini key | Leave empty for live Gemma |
 
-```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-public-anon-key
-GEMINI_API_KEY=your-server-side-api-key
-GEMMA_MODEL=gemma-4-26b-a4b-it
-TAVILY_API_KEY=your-server-side-search-api-key
-```
+### Supabase Setup
 
-Keep inference and search credentials on the server. The public Supabase client key must be used with authentication and row-level security; ordinary users must not directly edit grading or mastery records.
+1. Supabase dashboard → **SQL Editor** → **New query**, paste `supabase/migrations/20261008000000_skillforge.sql`, **Run** (once).
+2. **Authentication → URL Configuration:** add `http://localhost:3000/auth/confirm` (and any deployed URL) to the redirect URLs.
+3. Optional for demos: **Authentication → Sign In / Providers → Email**, turn off **Confirm email**.
 
 ### Running the Project
 
-Expected development command, subject to the final package scripts:
-
 ```bash
-npm run dev
+npm run dev                # http://localhost:3000
+npm test                   # domain + journey tests (no network)
+npm run lint
+npm run build && npm start
+npm run seed               # demo learner; see docs/demo-script.md
+bash scripts/test-sql.sh   # RLS checks (needs Docker)
 ```
 
-Open the URL printed by the server. Verify authentication, model access, and database connectivity. Document actual build and test commands after implementation.
+**Settings → Developer status** shows which mode each part runs in and can run a one-call Gemma check.
 
 ### Usage
 
 1. Create an account or sign in.
-2. Enter a learning goal and daily study time.
-3. Complete the initial diagnostic.
-4. Explore the skill graph and open the recommended lesson.
-5. Review sources, ask the tutor for help, and complete practice questions.
-6. Complete suggested targeted checks or remediation.
-7. Inspect progress, adaptation reasons, and the next lesson on the dashboard.
+2. Enter a learning goal, experience, daily study time and explanation style.
+3. Let setup build the graph, then complete both diagnostic batches.
+4. Explore the skill map and open the recommended lesson.
+5. Read the cited sources, ask the tutor for help, and answer the practice questions.
+6. Take any targeted check; work through a review node if one is inserted.
+7. Inspect progress, "Your path changed" and the next step on the dashboard.
 
 ## Challenges and Learnings
 
 ### Challenges
 
-Actual development challenges have not yet been recorded. Anticipated challenges and planned responses include:
-
-- **Unreliable model output:** Schema validation and a bounded repair attempt.
-- **Overreacting to one mistake:** Repeated evidence and targeted prerequisite checks before major changes.
-- **Lost history during updates:** Stable IDs, graph versions, and incremental patches.
-- **Unsupported citations:** References restricted to stored retrieved or curated sources.
-- **Six-hour deadline:** One complete learner journey and on-demand lesson generation.
+- **Model output that almost fits the schema:** live Gemma replies put code fences inside question text and quoted option numbers (`"2"`). We extract the outermost JSON object first, accept quoted numbers and option letters, validate with Zod, and allow one repair round that sends back the exact validation errors.
+- **Overreacting to one mistake:** a single wrong answer never changes the path; two answers sharing a misconception trigger a check, and only a failed check inserts remediation.
+- **Keeping history through graph changes:** skills keep stable IDs, every change is a versioned patch applied inside one database transaction, and retries are made safe with idempotency keys. A bug where a learner's second course reused the first course's setup keys was caught by the seed script and fixed.
+- **Grades the browser cannot forge:** learners read only their own rows and cannot write grades, mastery or graph rows; answer keys are not readable from the browser at all.
+- **Six-hour deadline:** we built one complete journey end to end and generate lessons on demand instead of up front.
 
 ### Learnings
 
-Actual development learnings are pending. The project is designed to explore:
-
-- Connecting assessment, tutoring, and planning through persistent learner state.
-- Separating activity completion from demonstrated understanding.
-- Combining generated proposals with deterministic validation and updates.
-- Explaining learning recommendations using concrete assessment evidence.
-
-Replace anticipated items with actual challenges, solutions, and observations after the event.
+- Keeping the model on proposals and the code on decisions made the adaptation logic testable without network calls.
+- Separating activity completion from demonstrated understanding changes what a dashboard can honestly show.
+- A labeled fixture mode let us build and test the whole journey before keys and network access were available.
 
 ## Devpost Submission
 
@@ -278,10 +316,10 @@ Add the completed Devpost project URL with team details, the working application
 ### Credits
 
 - **Under Ctrl team:** Dalli Krishan Preetham Reddy, Pardheev Vatturu, Irala Charuhas Reddy, and A Prithvi.
-- **Google / Gemma:** Planned integration. See the [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4) and [hosted Gemma documentation](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api).
-- **Open-source maintainers:** Credit the libraries actually used and preserve applicable notices.
+- **Google / Gemma:** Gemma 4 is the runtime model. See the [Gemma 4 model card](https://ai.google.dev/gemma/docs/core/model_card_4) and [hosted Gemma documentation](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api).
+- **Open-source maintainers:** see the table under Open Source Components.
 - **Educational resource authors:** Preserve source links and attribution for learning materials.
-- **AI development assistance:** Record tools actually used to generate or edit code and documentation.
+- **AI development assistance:** Claude (Claude Code) was used as a coding assistant.
 
 ### License
 
@@ -296,17 +334,17 @@ Add the completed Devpost project URL with team details, the working application
 - [x] Solution and key features documented
 - [x] Innovation and differentiation explained
 - [x] Architecture included
-- [ ] Technical implementation documented
-- [ ] Work completed during the hackathon documented
+- [x] Technical implementation documented
+- [x] Work completed during the hackathon documented
 - [ ] Team contributions documented
 - [ ] Working application is functional
 - [ ] Live application link added where applicable
 - [ ] Demo video added
-- [ ] AI and open-source components documented
+- [x] AI and open-source components documented
 - [ ] Setup and usage instructions tested
-- [ ] Challenges and learnings documented
+- [x] Challenges and learnings documented
 - [ ] Devpost submission completed
 - [ ] Devpost link added
-- [ ] Credits added
+- [x] Credits added
 - [ ] License added
 - [ ] Repository is organized and complete

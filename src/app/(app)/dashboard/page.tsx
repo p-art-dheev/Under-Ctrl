@@ -34,8 +34,12 @@ export default async function Dashboard() {
   const recent = [
     ...[...new Set(snap.attempts.map((a) => a.group_id))].map((g) => {
       const at = snap.attempts.filter((a) => a.group_id === g);
-      const q = snap.questions.find((x) => x.id === at[0].question_id)!;
-      return { at: at[0].created_at, text: `Answered ${at.length} ${q.group_kind.replace("_", " ").replace(/ \d/, "")} question${at.length === 1 ? "" : "s"} on ${snap.skills.find((s) => s.id === q.skill_ids[0])?.title}: ${at.filter((a) => a.is_correct).length} correct` };
+      const qs = at.map((a) => snap.questions.find((x) => x.id === a.question_id)!);
+      const kind = qs[0].group_kind.replace(/_\d$/, "").replace("_", "-");
+      // only name a skill when the whole group was about one skill (diagnostics span several)
+      const skillIds = new Set(qs.map((q) => q.skill_ids[0]));
+      const on = skillIds.size === 1 ? ` on ${snap.skills.find((s) => s.id === qs[0].skill_ids[0])?.title}` : "";
+      return { at: at[0].created_at, text: `Answered ${at.length} ${kind} question${at.length === 1 ? "" : "s"}${on}: ${at.filter((a) => a.is_correct).length} correct` };
     }),
     ...snap.progress.filter((p) => p.completed_at).map((p) => ({ at: p.completed_at!, text: `Completed the activity for ${snap.skills.find((s) => s.id === p.skill_id)?.title}` })),
   ].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6);

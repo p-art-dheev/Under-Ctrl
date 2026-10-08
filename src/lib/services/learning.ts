@@ -241,7 +241,7 @@ export async function advanceSetup(store: Store, courseId: string): Promise<Cour
   const snap = await loadSnapshot(store, courseId);
   const { course } = snap;
   const stage = course.state.setup_stage;
-  const key = `setup:${stage}:${course.graph_version}:${snap.questions.length}:${snap.resources.length}:${snap.lessons.length}`;
+  const key = `setup:${course.id}:${stage}:${course.graph_version}:${snap.questions.length}:${snap.resources.length}:${snap.lessons.length}`;
 
   if (stage === "graph") {
     const interp = snap.goal.interpretation;

@@ -46,14 +46,14 @@ function SkillNode({ data }: NodeProps<Node<SkillNodeData>>) {
       className={`w-[200px] rounded-xl border-2 bg-surface px-3 py-2 text-left shadow-sm ${s.kind === "remediation" ? "border-dashed" : ""} ${data.selected ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : ""}`}
       style={{ borderColor: BORDER[s.state], opacity: s.state === "locked" ? 0.75 : 1 }}
     >
-      <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0 !bg-line" />
+      <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-line" />
       <p className="truncate text-[13px] font-semibold text-ink" title={s.title}>{s.title}</p>
       <div className="mt-1 flex items-center justify-between gap-1">
         <span className="text-[11px] font-medium" style={{ color: BORDER[s.state] }}>{s.stateLabel ?? STATE_META[s.state].label}</span>
         <span className="text-[11px] text-muted">{s.score === null ? (s.kind === "core" ? "unassessed" : "review") : `${Math.round(s.score * 100)}%`}</span>
       </div>
       <div className="mt-1.5"><MasteryBar score={s.score} /></div>
-      <Handle type="source" position={Position.Right} className="!h-2 !w-2 !border-0 !bg-line" />
+      <Handle type="source" position={Position.Bottom} className="!h-2 !w-2 !border-0 !bg-line" />
     </div>
   );
 }
@@ -63,16 +63,17 @@ const nodeTypes = { skill: SkillNode };
 export function SkillGraph({ skills, version }: { skills: GraphSkill[]; version: number }) {
   const [selected, setSelected] = useState<string | null>(() => skills.find((s) => s.state === "needs_review" || s.state === "learning" || s.state === "available")?.id ?? null);
   const byId = useMemo(() => new Map(skills.map((s) => [s.id, s])), [skills]);
-  const nodes: Node<SkillNodeData>[] = useMemo(
-    () =>
-      skills.map((s) => ({
+  const nodes: Node<SkillNodeData>[] = useMemo(() => {
+    // top-down layout: one row per depth, centred so the graph reads like a tree
+    const perDepth = new Map<number, number>();
+    for (const s of skills) perDepth.set(s.depth, Math.max(perDepth.get(s.depth) ?? 0, s.row + 1));
+    return skills.map((s) => ({
         id: s.id,
         type: "skill",
-        position: { x: s.depth * 260, y: s.row * 110 },
+        position: { x: (s.row - ((perDepth.get(s.depth) ?? 1) - 1) / 2) * 230, y: s.depth * 120 },
         data: { skill: s, selected: s.id === selected },
-      })),
-    [skills, selected],
-  );
+      }));
+  }, [skills, selected]);
   const edges: Edge[] = useMemo(
     () =>
       skills.flatMap((s) =>
@@ -93,13 +94,14 @@ export function SkillGraph({ skills, version }: { skills: GraphSkill[]; version:
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div>
         <Legend />
-        <div className="hidden h-[560px] overflow-hidden rounded-2xl border border-line bg-surface md:block">
+        <div className="hidden h-[640px] overflow-hidden rounded-2xl border border-line bg-surface md:block">
           <ReactFlow
             nodes={nodes}
             edges={edges}
             nodeTypes={nodeTypes}
             onNodeClick={(_, n) => setSelected(n.id)}
             fitView
+            fitViewOptions={{ padding: 0.08 }}
             minZoom={0.3}
             nodesDraggable={false}
             nodesConnectable={false}

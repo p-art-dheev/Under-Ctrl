@@ -148,14 +148,34 @@ export async function callGemma(opts: CallOptions): Promise<string> {
   }
 }
 
-/** Pull the first JSON object out of model text (handles code fences and prose around it). */
+/**
+ * Pull the JSON object out of model text. Tries the outermost {...} first,
+ * because question prompts often contain ```python fences inside JSON strings;
+ * a fenced block is only used when the outer slice does not parse.
+ */
 export function extractJson(text: string): unknown {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  const candidate = fenced ? fenced[1] : text;
-  const start = candidate.indexOf("{");
-  const end = candidate.lastIndexOf("}");
-  if (start === -1 || end <= start) throw new Error("no JSON object found");
-  return JSON.parse(candidate.slice(start, end + 1));
+  const candidates: string[] = [];
+  const outer = (t: string) => {
+    const start = t.indexOf("{");
+    const end = t.lastIndexOf("}");
+    return start !== -1 && end > start ? t.slice(start, end + 1) : null;
+  };
+  const whole = outer(text);
+  if (whole) candidates.push(whole);
+  for (const m of text.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
+    const c = outer(m[1]);
+    if (c) candidates.push(c);
+  }
+  if (!candidates.length) throw new Error("no JSON object found");
+  let lastError: Error | null = null;
+  for (const c of candidates) {
+    try {
+      return JSON.parse(c);
+    } catch (err) {
+      lastError = err as Error;
+    }
+  }
+  throw new Error(`invalid JSON: ${lastError?.message}`);
 }
 
 const JSON_RULES =
