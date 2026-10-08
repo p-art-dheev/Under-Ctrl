@@ -399,3 +399,30 @@ describe("goal interpretation schema", () => {
     expect([g.is_specific, g.clarification_question, g.title]).toEqual([false, "Which programming language?", null]);
   });
 });
+
+describe("extractJson with LaTeX", () => {
+  it("keeps single-backslash LaTeX that is a valid JSON escape (\\frac, \\theta, \\nabla)", async () => {
+    const { extractJson } = await import("@/lib/ai/gemma");
+    const out = extractJson('{"reply":"Use $\\frac{a}{b}$ and $\\theta$, then $\\nabla f$.\\nNext"}') as { reply: string };
+    expect(out.reply).toBe("Use $\\frac{a}{b}$ and $\\theta$, then $\\nabla f$.\nNext");
+  });
+  it("accepts invalid escapes like \\alpha and \\( and leaves doubled ones alone", async () => {
+    const { extractJson } = await import("@/lib/ai/gemma");
+    const out = extractJson('{"a":"\\\\(x\\\\) \\alpha \\(y\\) \\sum \\\\beta"}') as { a: string };
+    expect(out.a).toBe("\\(x\\) \\alpha \\(y\\) \\sum \\beta");
+  });
+});
+
+describe("recommendCertifications", () => {
+  it("matches a Python data goal to Python and data certifications, best first", async () => {
+    const { recommendCertifications } = await import("@/lib/certifications");
+    const out = recommendCertifications({ goal: "Learn Python for data analysis", skills: ["Variables and types", "Loops", "pandas DataFrames"] });
+    expect(out.length).toBeGreaterThan(0);
+    expect(out[0].matched.length).toBeGreaterThan(0);
+    expect(out.map((m) => m.cert.id)).toContain("freecodecamp-data-analysis");
+  });
+  it("returns nothing when the goal matches no catalog entry", async () => {
+    const { recommendCertifications } = await import("@/lib/certifications");
+    expect(recommendCertifications({ goal: "Learn to bake sourdough", skills: ["Starter", "Shaping"] })).toEqual([]);
+  });
+});

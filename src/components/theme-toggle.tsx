@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { flushSync } from "react-dom";
 import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -11,6 +12,29 @@ function apply(choice: Choice) {
   try {
     localStorage.setItem("sf-theme", choice);
   } catch {}
+}
+
+/**
+ * Switches theme with a circle that grows from the clicked button (View
+ * Transitions API). Browsers without it, and visitors who prefer reduced
+ * motion, get an instant switch.
+ */
+function reveal(choice: Choice, from: HTMLElement, commit: () => void) {
+  const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!document.startViewTransition || reduced) return commit();
+  const box = from.getBoundingClientRect();
+  const x = box.left + box.width / 2;
+  const y = box.top + box.height / 2;
+  const radius = Math.hypot(Math.max(x, window.innerWidth - x), Math.max(y, window.innerHeight - y));
+  const transition = document.startViewTransition(() => flushSync(commit));
+  transition.ready
+    .then(() =>
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 650, easing: "cubic-bezier(0.22, 1, 0.36, 1)", pseudoElement: "::view-transition-new(root)" },
+      ),
+    )
+    .catch(() => {});
 }
 
 /** Light/dark switch. Light is the default until the learner picks dark. */
@@ -34,9 +58,12 @@ export function ThemeToggle({ className }: { className?: string }) {
           aria-checked={choice === value}
           aria-label={label}
           title={label}
-          onClick={() => {
-            setChoice(value);
-            apply(value);
+          onClick={(e) => {
+            if (choice === value) return;
+            reveal(value, e.currentTarget, () => {
+              setChoice(value);
+              apply(value);
+            });
           }}
           className={cn(
             "grid h-7 w-7 place-items-center rounded-full text-muted transition-colors hover:text-ink",

@@ -224,7 +224,7 @@ export interface Attempt {
   course_id: string;
   owner_id: string;
   group_id: string;
-  answer: { option?: number; text?: string };
+  answer: { option?: number; text?: string; image_count?: number; transcript?: string | null };
   score: number;
   is_correct: boolean;
   hint_count: number;

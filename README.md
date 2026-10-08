@@ -50,7 +50,12 @@ Gemma 4 interprets the goal, proposes the graph, writes diagnostics, lessons and
 - **Personalized lessons and quizzes:** Generate explanations, examples, exercises, and assessments matched to current needs.
 - **Knowledge-gap detection:** Connect repeated mistakes to possible misconceptions and use targeted checks to confirm prerequisite gaps.
 - **Adaptive curriculum:** Insert remedial practice, adjust difficulty, and reorder unfinished lessons when evidence supports a change.
-- **Contextual tutor:** Answer questions using the current lesson, relevant sources, and recent learner responses.
+- **Contextual tutor:** Answer questions using the current lesson, relevant sources, and recent learner responses. Questions can be typed or dictated (browser speech recognition; the mic button only appears where the browser supports it).
+- **Photo answers:** Short-answer questions accept up to three photos (file picker or pasted screenshot) of handwritten or typeset working, such as a maths derivation. The browser shrinks them, Gemma reads and grades them against the rubric, and only the text and Gemma's transcription are stored, not the images.
+- **Maths rendering:** LaTeX in lessons, feedback and tutor replies (`$..$`, `$$..$$`, `\(..\)`, `\[..\]`) is rendered with KaTeX. Model output with LaTeX backslashes is repaired before JSON parsing.
+- **At least three sources per lesson:** Each lesson is written from, and lists, three or more sources; the page marks which are cited in the text and which are further reading.
+- **Certification suggestion:** A team-curated catalog is matched to the goal by keyword and shown on the Certification page and dashboard. It states no fees or durations and links to each provider; the links were written by the team and have not been checked at runtime.
+- **Interface touches:** circular theme-switch reveal (View Transitions API, instant for reduced-motion or unsupported browsers), favicon, copy button on code blocks, Markdown tables, theme switch on mobile.
 - **Progress dashboard:** Show completed lessons, assessed and mastered skills, review needs, activity, and the recommended next step.
 
 ## Innovation and Differentiation
@@ -174,6 +179,7 @@ Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack D
 | Live Gemma 4 (`gemma-4-26b-a4b-it`) | A full live run with the team key (local store, curated sources) completed: goal → graph → both diagnostics → short-answer grading → sources → first lesson with citations → tutor reply → graded practice, in about 2.5 minutes. The parsing fixes listed under Challenges came from these runs. The live adaptation path (check and remediation) is covered by tests with sample content, not yet by a live run |
 | Supabase Auth and Postgres in a real project | Not yet run: the build container could not reach supabase.co. Apply the migration and follow [the auth checklist](docs/auth-checklist.md) |
 | Tavily live search | Not yet run for the same reason; the curated catalog is used without a key |
+| Voice input, photo answers, KaTeX, certification page, theme reveal | Build, lint and unit tests pass; the page, theme reveal and mic button were checked in Chromium in fixture mode. Photo grading and dictation have not been run against live Gemma or a real microphone, and it is not confirmed that the hosted Gemma model reads images |
 | Deployment, demo video | Pending |
 
 ### What is fixture-only or unfinished
@@ -218,6 +224,7 @@ The 90-second script is in [docs/demo-script.md](docs/demo-script.md): a Python 
 | Tailwind CSS | Styling | MIT |
 | React Flow (`@xyflow/react`) | Skill graph rendering | MIT |
 | Recharts | Dashboard charts | MIT |
+| KaTeX | Rendering LaTeX maths | MIT |
 | Zod | Input and model-output validation | MIT |
 | `@supabase/supabase-js`, `@supabase/ssr` | Auth and database client | MIT |
 | lucide-react | Icons | ISC |
