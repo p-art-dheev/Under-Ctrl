@@ -1,0 +1,110 @@
+@import "tailwindcss";
+
+/* SkillForge design tokens. Light is the default; dark follows the OS setting. */
+:root {
+  --bg: #f6f5f1;
+  --surface: #ffffff;
+  --surface-2: #f0eee8;
+  --ink: #17162a;
+  --muted: #615e73;
+  --line: #e3e0d8;
+  --brand: #4b3fd1;
+  --brand-ink: #ffffff;
+  --brand-soft: #ebe9fb;
+  --ember: #d9480f;
+  --ember-soft: #fdebe1;
+  --st-mastered: #18794e;
+  --st-mastered-soft: #e0f3ea;
+  --st-learning: #1d62c9;
+  --st-learning-soft: #e3edfb;
+  --st-available: #4b3fd1;
+  --st-available-soft: #ebe9fb;
+  --st-review: #b54708;
+  --st-review-soft: #fdf0d9;
+  --st-locked: #6f6d7c;
+  --st-locked-soft: #ecebe7;
+  --danger: #b42318;
+  --danger-soft: #fde8e6;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111019;
+    --surface: #1a1925;
+    --surface-2: #232231;
+    --ink: #eeedf5;
+    --muted: #a5a2b8;
+    --line: #2f2d40;
+    --brand: #9d93ff;
+    --brand-ink: #14122b;
+    --brand-soft: #29264a;
+    --ember: #ff8a4c;
+    --ember-soft: #3a2318;
+    --st-mastered: #5fd3a0;
+    --st-mastered-soft: #15322a;
+    --st-learning: #7fb0ff;
+    --st-learning-soft: #172a47;
+    --st-available: #b1a9ff;
+    --st-available-soft: #29264a;
+    --st-review: #ffb454;
+    --st-review-soft: #3b2a12;
+    --st-locked: #9a98a8;
+    --st-locked-soft: #262532;
+    --danger: #ff8a80;
+    --danger-soft: #3d1b19;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-ember: var(--ember);
+  --color-ember-soft: var(--ember-soft);
+  --color-mastered: var(--st-mastered);
+  --color-mastered-soft: var(--st-mastered-soft);
+  --color-learning: var(--st-learning);
+  --color-learning-soft: var(--st-learning-soft);
+  --color-available: var(--st-available);
+  --color-available-soft: var(--st-available-soft);
+  --color-review: var(--st-review);
+  --color-review-soft: var(--st-review-soft);
+  --color-locked: var(--st-locked);
+  --color-locked-soft: var(--st-locked-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+@keyframes sf-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.sf-skeleton {
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--line) 37%, var(--surface-2) 63%);
+  background-size: 800px 100%;
+  animation: sf-shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sf-skeleton { animation: none; }
+  * { transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
