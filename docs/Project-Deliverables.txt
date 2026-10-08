@@ -1,0 +1,207 @@
+# Claude Build Prompt — SkillForge
+
+Copy the prompt below into Claude Pro, or upload this file and ask Claude to follow it. In Claude Code, work directly in the project. In Claude's web interface, ask for complete files in runnable batches and run them locally. Claude writes the software; Gemma 4 powers the application's AI features.
+
+---
+
+You are my senior full-stack engineer, AI engineer, and product designer. Build **SkillForge**, a polished adaptive education web application for a six-hour hackathon. Deliver working software, not just an architecture proposal, mockup, or generic chatbot.
+
+## 1. Product objective
+
+A learner creates an account, describes a goal, completes a short diagnostic, and receives a personalized course represented by a **persistent, dynamic skill graph**. The platform retrieves relevant learning resources, teaches concepts, generates practice, evaluates answers, identifies likely knowledge gaps, explains them with evidence, and adapts upcoming lessons. A dashboard makes progress and the reasons behind curriculum changes visible.
+
+The central loop is:
+
+**Goal → diagnostic → skill graph → lesson and practice → assessment evidence → mastery update → curriculum adaptation → next lesson.**
+
+Make these connected capabilities work together. Every assessment should influence the stored learning state. Every recommendation should connect to the user's goal and current evidence.
+
+### Example demonstration
+
+Goal: “Learn Python for data analysis. I know some basics and can study 30 minutes a day.”
+
+The diagnostic identifies some familiarity with variables and gaps in indexing and loops. The course includes lists, indexing, iteration, functions, dictionaries, and introductory tabular data analysis. Later, repeated mistakes on loop questions suggest an indexing gap. The platform checks that prerequisite, inserts targeted indexing practice before the next dependent lesson, explains why, and updates the graph and dashboard. Correct independent follow-up answers increase mastery and make the relevant next lesson available. Refreshing or signing back in preserves all of this.
+
+## 2. Constraints and implementation approach
+
+- Time budget: six hours. Prioritize one complete, reliable end-to-end journey.
+- Required generative model: **Gemma 4** for diagnostic generation, curriculum planning, lesson generation, tutoring, answer feedback, misconception hypotheses, and adaptation explanations.
+- Claude is the development assistant, not the app's runtime model. Do not silently substitute Claude, Gemini, GPT, or another generative model for Gemma 4.
+- Prefer Next.js App Router, TypeScript, Tailwind CSS, Supabase Auth and Postgres, React Flow for the graph, Recharts for dashboard charts, and Zod for validated structured responses. Use a small component library if it saves time.
+- Use server-side AI and search calls. Keep model/search credentials out of the browser.
+- No separate graph database, microservices, fine-tuning, agent framework, vector database, or infrastructure-heavy deployment is necessary for this MVP. Store nodes and prerequisite edges relationally. Ordinary filtered retrieval of a small source corpus is sufficient.
+- Make hosted Gemma inference the default to reduce setup time. Google documents `gemma-4-26b-a4b-it` and `gemma-4-31b-it` through the Gemini API; start with the former and keep the model ID configurable. Verify current provider documentation and account availability before coding against it. The Gemini API is the transport; the selected model must be Gemma 4.
+- Suggested configuration: `GEMMA_MODEL`, `GEMINI_API_KEY`, `TAVILY_API_KEY`, `NEXT_PUBLIC_SUPABASE_URL`, and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Use an authenticated Supabase server client and row-level security for normal app operations. Only introduce a service-role key if a narrowly scoped server operation actually requires it.
+- Wrap Gemma calls behind one provider adapter. Do not assume provider-specific JSON schemas, built-in web grounding, streaming, or tool calling are supported without verification. Prompt for JSON, parse it, validate it with Zod, and allow one bounded repair attempt when needed.
+- Target arbitrary educational goals at the schema and prompt level, but deeply validate the Python data-analysis demo. Do not claim comprehensive teaching quality across every topic.
+
+If repository files already exist, inspect and reuse them. Make sensible implementation decisions without repeatedly requesting approval. Explain any genuine setup blocker briefly and continue work that is independent of it.
+
+## 3. Required user journeys
+
+### A. Authentication and goal onboarding
+
+Implement sign-up, sign-in, sign-out, protected routes, and persistent learner data. Use real Supabase Auth. If email confirmation is enabled, show the appropriate confirmation flow rather than assuming immediate sign-in. Provide a clear setup note for a hackathon-friendly auth configuration.
+
+Collect the learner's goal, self-reported experience, available minutes per day, preferred explanation format, and optional target date. Self-reported experience is context, not proof of competence. Allow a user to have multiple goal-specific learning plans; build the primary flow around one active plan.
+
+If the goal is too vague, ask one short clarification in onboarding. Offer useful goal examples rather than forcing a preset domain.
+
+### B. Goal-specific diagnostic
+
+Gemma should propose an initial prerequisite graph and generate 6–8 diagnostic questions tied to its skills. Include a mix of multiple-choice and short explanations or applications. Start with accessible questions and include a few harder questions. Prefer two small batches so the second batch can respond to the first batch's evidence.
+
+Persist question IDs, skill mappings, rubrics, correct answers, user answers, confidence if supplied, hint use, evaluations, and timestamps. Keep correct answers and rubrics server-side until submission. Grade multiple-choice deterministically. Evaluate short answers with Gemma against a stored rubric and show concise, actionable feedback.
+
+Generate an initial skill report with likely strengths, observed gaps, and uncertainty. An untested skill must remain unassessed. Do not equate a few diagnostic questions with a precise or definitive ability measurement.
+
+### C. Resource retrieval and personalized curriculum
+
+Use a real search API such as Tavily from the server. Gemma may generate search queries and rank retrieved candidates; the application executes searches. Prefer relevant primary documentation, reputable educational material, and publicly accessible beginner-friendly resources. Do not treat a search result as automatically authoritative.
+
+Retrieve a small, bounded set of sources during course creation and cache them per goal/skill. Associate resources with graph nodes. Store title, URL, provider, retrieved excerpt or summary, retrieval time, verification status, format, and selection reason. Use 1–3 strong resources per skill where available instead of producing a large unsorted link list.
+
+Pass retrieved excerpts with stable source IDs into lesson-generation prompts. Require citations to supplied source IDs only, then map them to stored URLs in the UI. Clearly distinguish generated teaching material from source excerpts. If retrieval supplies only metadata or snippets, do not pretend the full page was read. Never invent URLs, article titles, publication dates, or citations. Mark learning-time estimates as platform estimates, not publisher claims.
+
+If live search is unavailable, use a small curated resource catalog with real links and show “curated resources” explicitly. Do not label fallback results as live research. Avoid page scraping in the core MVP; if implemented, bound fetches and reject private/local network destinations and unsafe redirects.
+
+Generate a compact initial graph with approximately 12–18 skills and a topologically ordered learning plan. Adjust entry points and lesson depth based on diagnostic evidence. Show how a skill contributes to the user's goal, its prerequisites, mastery evidence, recommended lesson, and sources.
+
+### D. Persistent interactive skill graph
+
+The interface may look like a skill tree, but the underlying structure must be a directed acyclic graph: a skill can have multiple prerequisites and multiple dependents. Define edges as **prerequisite → dependent skill**. Validate edges and reject cycles, dangling references, and duplicate nodes before committing model output.
+
+Store the graph in Postgres. Use stable node IDs and optional semantic keys within each course. Refresh, logout/login, and lesson regeneration must not recreate IDs or erase learning evidence. Scope mastery to the current course for this MVP; cross-course transfer is a later feature.
+
+Display distinct states: unassessed/locked, available, learning, needs review, and mastered. Use a legend and labels as well as colors. Node selection opens skill details with an explanation of its current status. Support zoom, pan, and fit-to-view. On mobile, provide a usable list view.
+
+Maintain graph version numbers and change events. Apply validated patches to the existing graph rather than asking Gemma to replace the entire graph on every response. Adaptations may add a remediation skill, add a prerequisite edge, reorder pending lessons, adjust lesson difficulty, or schedule review. Preserve completed work, historical attempts, and earlier lesson versions.
+
+Graph state and progress must come from the database. React Flow renders that state; client state is not the source of truth.
+
+### E. Lesson workspace and contextual tutor
+
+Generate the first lesson immediately and upcoming lessons on demand to keep latency and cost manageable. Each lesson contains an objective, prerequisite recap, explanation, worked example, a short application exercise, 3–5 practice questions, and source references. Match the scope to the learner's available study time.
+
+Include a contextual “Ask tutor” panel. The tutor receives the current skill, lesson, relevant sources, recent mistakes, and mastery summary. It should offer progressive hints, a simpler example, and an alternative explanation before revealing a full solution. Provide buttons such as “Explain more simply,” “Give an example,” and “Check my understanding.” Save the relevant conversation context.
+
+Lesson completion means the activity was completed; it must not automatically mean the skill was mastered. Provide a clear next action after each lesson.
+
+Do not implement execution of arbitrary learner code in this MVP. Code answers can be reviewed as text with a rubric. A secure code runner, voice interaction, handwritten-work analysis, and multimodal submissions are optional later extensions.
+
+### F. Knowledge-gap detection and adaptation
+
+Combine quiz results, rubric criteria, answer patterns, hint use, and explicit “I don't understand” feedback. Time spent is a weak signal and must not alone trigger a diagnosis. Do not infer personal traits, disabilities, or cognitive conditions.
+
+Gemma proposes structured misconception hypotheses tied to specific answers. Backend rules decide whether there is enough evidence to adapt the course. Frame feedback as an evidence-based suggestion, for example: “In two questions you used an item value where an index was needed. Reviewing indexing may help before nested loops.” Show the relevant attempts and uncertainty; avoid declaring a prerequisite gap solely because its dependent skill was answered incorrectly.
+
+When prerequisite understanding is uncertain, ask 1–2 targeted checks. Confirmed prerequisite difficulty should insert a short remediation activity before dependent content, simplify the next unfinished lesson, and schedule a follow-up assessment. Maintain a visible “Your path changed” panel showing what changed and why. Allow learners to postpone remediation with a visible recommendation rather than trapping them permanently.
+
+Bound adaptation: at most one automatic remediation insertion per assessment batch. Reuse an existing unresolved remediation task for the same gap. Do not repeatedly rebuild the entire curriculum or erase mastered skills because of a single error.
+
+### G. Dashboard
+
+Build a real data-backed dashboard with active goal, current lesson, recommended next action, completed lesson count, assessed/mastered skill counts, weak skills requiring review, recent activity, study time, and mastery history. Keep course completion separate from mastery. Label unassessed skills explicitly rather than counting them as failures or implying knowledge.
+
+Show the interactive graph, a compact weekly activity chart, resource recommendations, and a “Why this next?” explanation tied to prerequisites and assessment evidence. Every number must have a defined computation from persisted records. Avoid fabricated demo percentages, rankings, or unverifiable learning-effectiveness claims.
+
+## 4. Data model and server responsibilities
+
+Provide SQL migrations and row-level security policies. Suggested tables:
+
+- `profiles`: auth user ID, preferences, timezone.
+- `learning_goals`: owner, goal text, experience, daily minutes, target date.
+- `courses`: goal ID, owner, current graph version, creation/status fields.
+- `skills`: course ID, stable ID/key, title, objective, estimated duration.
+- `skill_edges`: course ID, prerequisite skill ID, dependent skill ID.
+- `skill_mastery`: skill ID, owner, score, evidence count, provisional status, last assessed time. Unassessed scores may be null.
+- `resources`: course/skill association, URL, title, excerpt, retrieval provenance.
+- `lessons`: skill ID, version, difficulty, structured content, source IDs.
+- `lesson_progress`: learner, lesson, status, timestamps, active minutes.
+- `questions`: assessment group, skill mappings, type, prompt, private answer/rubric.
+- `assessment_attempts`: question/learner, answer, grade, hint count, misconception hypotheses, idempotency key.
+- `mastery_events`: learner/skill, old and new score, attempt IDs, evidence reason.
+- `adaptation_events`: course, graph versions, patch, evidence IDs, user-facing reason.
+- `tutor_messages`: learner/course/skill context, message, role, timestamp.
+
+You may consolidate tables to meet the deadline if the behaviors and ownership boundaries remain intact. Enforce valid cross-table course ownership and foreign keys. Keep grading secrets in a private table/schema or otherwise ensure ordinary learner reads cannot retrieve answers before submission; row-level ownership alone does not protect answer columns.
+
+Implement authenticated server operations for onboarding, diagnostic generation/submission, graph creation/read, resource retrieval, lesson generation, tutor messages, assessment submission, adaptation, and dashboard reads. Validate that every referenced goal/course/skill belongs to the signed-in user. Users must never write their own grades or mastery scores directly. Use transactions, optimistic graph-version checks, and unique submission keys so retries cannot double-count attempts or duplicate graph patches. Generate AI proposals before the transaction, then atomically commit a validated result against the expected version.
+
+## 5. Transparent mastery and unlocking rules
+
+Use a simple, explicit heuristic for the hackathon rather than claiming a validated knowledge-tracing model. Keep scores in [0,1], with null representing no evidence.
+
+For a scored question, let `r` be rubric correctness in [0,1]. Reduce its contribution if hints were used, for example `r_effective = r × 0.7` with hints and `r_effective = r` otherwise. The first direct observation can initialize mastery to `r_effective`; later observations use `m_new = 0.7 × m_old + 0.3 × r_effective`. Mark limited evidence provisional. Track direct evidence independently of prerequisite-related hypotheses.
+
+Use a mastery threshold of 0.8 plus at least three direct scored observations, including two correct independent answers without hints. For MVP unlocking, a prerequisite can be ready at 0.65 with at least two observations or through a documented learner override. These are configurable demo heuristics, not scientific estimates of ability.
+
+Consider review when a batch contains at least two low-scoring answers with the same misconception hypothesis. Require targeted prerequisite evidence before lowering that prerequisite's mastery. A wrong advanced answer must not automatically lower all ancestor scores. On a first failure, offer feedback and a check before making major changes.
+
+Compute graph display state server-side from readiness, mastery evidence, review needs, and lesson activity using documented precedence. Persist assessment/mastery events, and derive counts and histories from them. Keep state transitions deterministic and explainable.
+
+## 6. AI contracts and reliability
+
+Create separate prompt templates and Zod schemas for goal interpretation, graph proposal, diagnostic questions, source ranking, lesson generation, short-answer evaluation, tutor responses, and adaptation proposals. Reuse one model adapter; these are task-specific calls, not a requirement to run separate autonomous agents.
+
+Every model task must define its inputs, permitted output fields, source/evidence references, and limits. For example, evaluation returns correctness score, concise feedback, misconception hypotheses with supporting attempt/question IDs, confidence, and suggested follow-up skills. Adaptation returns an allowed patch, expected graph version, rationale, and supporting evidence IDs. Validate references and bounded numeric fields before applying anything.
+
+Treat model output as a proposal, not trusted database instructions. Backend code controls authorization, grading rules, graph validation, mastery updates, and persistence. Treat retrieved text and learner answers as untrusted content, not instructions to reveal secrets or change system behavior. Do not expose internal chain-of-thought; show concise pedagogical explanations grounded in observed evidence.
+
+Add loading/progress states, timeouts, bounded retries, caching, and useful error messages. Cache lesson content and retrieved sources with versions. Avoid a model call on every dashboard refresh. Save successful intermediate stages so a failed retrieval or lesson call can resume without deleting the diagnostic.
+
+Provide an explicit fixture/demo mode for missing credentials. It may exercise the same persistence and transition logic with seeded data, but clearly label it. Do not silently convert failed live Gemma calls into fake live responses. Include a small developer status page or panel identifying the configured provider/model, whether a live call succeeded, search availability, and fixture mode. Do not expose keys.
+
+## 7. Visual design
+
+Make the product feel like a focused learning workspace: clear typography, comfortable spacing, accessible contrast, restrained animation, and a distinctive but coherent accent palette. Use a sidebar for Dashboard, Skill Map, My Course, Resources, and Settings.
+
+Use the skill graph and adaptation timeline as the central visual differentiators. Lesson pages should prioritize readable teaching content and practice, with the contextual tutor alongside them on desktop. Show skeletons during generation, helpful empty states, retry controls, and a clear distinction between completed activities and mastered skills. Avoid ornamental widgets and navigation buttons that do nothing.
+
+## 8. Six-hour implementation order
+
+1. **0:00–0:45:** Scaffold, environment setup, database migration, auth, protected routes, and an early live Gemma smoke call. Identify provider-access issues immediately.
+2. **0:45–1:45:** Goal onboarding, diagnostic persistence/grading, initial graph generation and storage.
+3. **1:45–2:45:** Source retrieval/catalog fallback, graph visualization, first lesson, progress persistence.
+4. **2:45–4:00:** Quiz evidence, mastery rules, targeted prerequisite checks, remediation insertion, and adaptation events.
+5. **4:00–5:00:** Dashboard, contextual tutor, graph-detail panel, source citations, and responsive UI.
+6. **5:00–6:00:** Integration checks, cross-user isolation, reload persistence, error handling, seed/demo script, and visual polish.
+
+If time becomes tight, shorten the initial course and cut optional features first. Preserve real auth, persistent graph identity, source-backed content, evidence-based adaptation, and the dashboard. Do not spend the first several hours on a landing page.
+
+## 9. Acceptance checks and demo
+
+The build is complete when:
+
+1. A learner can create an account and goal, answer diagnostic questions, and obtain a stored course and graph.
+2. The graph has valid prerequisite edges and no cycles; stable node IDs and learning state survive reload and logout/login.
+3. Lessons have clickable sources from retrieved or explicitly curated resources; unsupported source IDs cannot reach the UI.
+4. Incorrect answers create evidence and useful feedback. Repeated related mistakes trigger targeted checks, and confirmed gaps change pending content visibly.
+5. A learner can complete remediation and independent follow-up questions; mastery and lesson availability update without losing history.
+6. Dashboard counts reflect persisted data. Reading content alone does not increase mastery.
+7. Duplicate submissions do not produce duplicate grades, mastery updates, or remediation nodes.
+8. A second account cannot access the first account's goals, graph, answers, tutor history, or progress. Browser users cannot edit mastery directly or retrieve private answer keys.
+9. API failure produces a recoverable error. Any fixture mode is explicit, and a live Gemma smoke check is reported separately.
+
+Add focused tests for graph cycle rejection, mastery/availability transitions, patch idempotency, and source-reference validation. Include a manual two-user authorization checklist and one end-to-end learner walkthrough. Do not invent test results or claim proven learning gains from a demo.
+
+Create a repeatable 90-second demonstration using seeded persisted data: show a diagnostic-generated Python goal, select a skill and its sources, submit a deliberate indexing-related mistake, confirm the gap with a targeted check, show the remediation and adaptation reason, complete follow-up questions, and refresh to show persistence. Include separate fresh-account and seeded-demo paths. A seeded state should have realistic direct evidence counts so thresholds actually permit the demonstrated transitions.
+
+## 10. Deliverables and working style
+
+Produce runnable application files, SQL migrations and RLS policies, `.env.example`, setup instructions, Gemma task prompts/schemas, curated demo resources, a seed script, focused checks, and a short demo walkthrough. README must explain where keys come from, how to run the app, the actual model used, the scoring heuristic, and what is fixture-only or unfinished.
+
+Start with a concise architecture and folder structure, then implement the first complete journey. If you have filesystem/terminal access, edit files and run appropriate checks; report actual outcomes. If you are working only in Claude's web chat, output complete files in manageable batches with exact paths and commands. Maintain a brief completed/remaining checklist between batches, keep each batch internally consistent, and end each batch at a runnable checkpoint. Do not claim to have run commands you cannot execute.
+
+Do not respond with only suggestions, pseudocode, a frontend-only mock, or a chatbot attached to a static course. Build the smallest cohesive version where assessment evidence changes a persistent learning path.
+
+Begin implementation now.
+
+---
+
+Integration references to verify before implementation:
+
+- Gemma 4 model card: https://ai.google.dev/gemma/docs/core/model_card_4
+- Hosted Gemma API documentation: https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api
+
+The hosted model identifiers above were checked against Google's documentation when this prompt was prepared on 8 October 2026. Availability and provider features should be checked in the build environment.
