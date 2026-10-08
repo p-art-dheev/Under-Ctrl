@@ -192,11 +192,9 @@ Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack D
 
 ## Working Application
 
-**Live Application:** Pending deployment.
+**Live Application:** https://cognify-one-tawny.vercel.app (Vercel)
 
 Test flow: account creation → goal → diagnostic → skill graph → lesson and quiz → targeted remediation → updated dashboard. Refreshing and signing back in preserves the course and progress. See [docs/walkthrough.md](docs/walkthrough.md).
-
-Add the functional deployment URL and required access instructions once verified.
 
 ## Demo Video
 
@@ -280,6 +278,13 @@ bash scripts/test-sql.sh   # RLS checks (needs Docker)
 ```
 
 **Settings → Developer status** shows which mode each part runs in and can run a one-call Gemma check.
+
+### Deploying on Vercel
+
+1. Import the GitHub repository as a Next.js project (no build settings to change).
+2. **Settings → Environment Variables:** add the Gemma, Tavily and all three Supabase variables from the table above. Supabase is required on Vercel, because the local JSON store cannot write to a serverless filesystem. Leave `COGNIFY_FIXTURE_MODE` unset for live Gemma.
+3. Redeploy so the variables take effect.
+4. In Supabase **Authentication → URL Configuration**, set the Site URL to the Vercel domain and add `https://<your-domain>/auth/confirm` to the redirect URLs.
 
 ### Usage
 
