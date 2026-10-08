@@ -180,7 +180,7 @@ Everything in `src/`, `supabase/`, `tests/` and `scripts/` was written on Hack D
 | Supabase Auth and Postgres in a real project | Not yet run: the build container could not reach supabase.co. Apply the migration and follow [the auth checklist](docs/auth-checklist.md) |
 | Tavily live search | Not yet run for the same reason; the curated catalog is used without a key |
 | Voice input, photo answers, KaTeX, certification page, theme reveal | Build, lint and unit tests pass; the page, theme reveal and mic button were checked in Chromium in fixture mode. Photo grading and dictation have not been run against live Gemma or a real microphone, and it is not confirmed that the hosted Gemma model reads images |
-| Deployment, demo video | Pending |
+| Deployment, demo video | Uploaded |
 
 ### What is fixture-only or unfinished
 
@@ -204,7 +204,7 @@ Test flow: account creation → goal → diagnostic → skill graph → lesson a
 
 ## Demo Video
 
-**Demo Video:** Pending recording and upload.
+**Demo Video:**  Recorded and uploaded (https://youtu.be/flDt4K88ybY).
 
 The 90-second script is in [docs/demo-script.md](docs/demo-script.md): a Python data-analysis goal, diagnostic-generated graph, lesson sources, an indexing-related mistake, a targeted prerequisite check, the remediation and its reason, a follow-up, and a refresh to show persistence. It has separate seeded and fresh-account paths; seeded data is sample content and is labeled as such.
 
