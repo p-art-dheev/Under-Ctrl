@@ -71,6 +71,13 @@ export const MisconceptionOut = z.object({
 function normaliseQuestion(raw: unknown): unknown {
   if (!raw || typeof raw !== "object") return raw;
   const q = { ...(raw as Record<string, unknown>) };
+  if (q.type === "short" || (Array.isArray(q.options) && q.options.length === 0)) {
+    if (q.type !== "short" && !Array.isArray(q.rubric)) return q;
+    q.type = "short";
+    q.options = null;
+    q.correct_option = null;
+    q.distractor_tags = [];
+  }
   const options = Array.isArray(q.options) ? (q.options as unknown[]).map((o) => String(o).trim()) : null;
   const toIndex = (v: unknown): number | null => {
     const n = lenient(v);
@@ -105,7 +112,7 @@ export const QuestionOut = z.preprocess(normaliseQuestion, z
     type: z.enum(["mcq", "short"]),
     difficulty: z.enum(["easy", "medium", "hard"]),
     prompt: text(1200),
-    options: z.array(text(300)).min(3).max(5).nullable(),
+    options: z.array(text(300)).min(2).max(5).nullable(),
     correct_option: num(z.number().int().min(0).max(4)).nullable(),
     distractor_tags: z.array(MisconceptionOut.extend({ option: num(z.number().int().min(0).max(4)) })).max(5),
     rubric: z.array(text(240)).max(5),

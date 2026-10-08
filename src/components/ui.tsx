@@ -3,9 +3,9 @@ import { CheckCircle2, CircleDashed, Lock, PlayCircle, RotateCcw, Sparkles } fro
 import type { DisplayState } from "@/lib/types";
 
 export const btn =
-  "inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-ink shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-brand-ink shadow-sm transition hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
 export const btnGhost =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50";
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink transition hover:bg-surface-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50";
 export const input =
   "w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none";
 
@@ -70,7 +70,7 @@ export function MasteryBar({ score }: { score: number | null }) {
   const pct = Math.round(score * 100);
   return (
     <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-2" role="meter" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100} aria-label="Mastery estimate">
-      <div className={`h-full rounded-full ${score >= 0.8 ? "bg-mastered" : score >= 0.65 ? "bg-learning" : "bg-review"}`} style={{ width: `${pct}%` }} />
+      <div className={`sf-bar h-full rounded-full ${score >= 0.8 ? "bg-mastered" : score >= 0.65 ? "bg-learning" : "bg-review"}`} style={{ width: `${pct}%` }} />
     </div>
   );
 }

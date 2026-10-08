@@ -5,7 +5,7 @@ import { courseContext } from "@/lib/page-context";
 import { ensureLesson } from "@/lib/services/learning";
 import { loadSnapshot, nextAction, skillViews } from "@/lib/services/snapshot";
 import { Card, MasteryBar, Pill, StateBadge, UnassessedBadge, btn } from "@/components/ui";
-import { Markdown, type CitationTarget } from "@/components/markdown";
+import { InlineMarkdown, Markdown, type CitationTarget } from "@/components/markdown";
 import { QuestionForm } from "@/components/question-form";
 import { TutorPanel } from "@/components/tutor-panel";
 import { CompleteLessonButton, LessonTracker, MorePracticeButton, PostponeButton, UnlockButton } from "@/components/lesson-controls";
@@ -90,21 +90,21 @@ export default async function LearnPage({ params }: { params: Promise<{ skillId:
           </div>
         </div>
         <div className="w-48">
-          <p className="mb-1 text-xs text-muted">{view.mastery.score === null ? "No evidence yet" : `Mastery estimate ${Math.round(view.mastery.score * 100)}% · ${view.mastery.evidence_count} answers`}</p>
+          <p className="mb-1 text-xs text-muted">{view.mastery.score === null ? "No evidence yet" : `Mastery estimate ${Math.round(view.mastery.score * 100)}% · ${view.mastery.evidence_count} answer${view.mastery.evidence_count === 1 ? "" : "s"}`}</p>
           <MasteryBar score={view.mastery.score} />
         </div>
       </div>
 
       {view.remediation === "open" ? (
-        <Card className="mb-5 border-review/40 bg-review-soft">
+        <Card className="sf-enter mb-5 border-review/40 bg-review-soft">
           <p className="text-sm"><strong>Why this review is here:</strong> {[...snap.adaptations].reverse().find((e) => e.patch?.add_skills?.some((s) => s.id === skill.id))?.reason ?? view.reason}</p>
           <p className="mt-2 text-sm">Answer the follow-up questions below. When they go well, the review resolves and {snap.edges.filter((e) => e.prerequisite_id === skill.id).map((e) => title(e.dependent_id)).join(", ")} opens again.</p>
           <div className="mt-3"><PostponeButton courseId={snap.course.id} remediationId={skill.id} /></div>
         </Card>
       ) : null}
       {pc && pc.dependent_skill_id === skillId ? (
-        <Card className="mb-5 border-brand/40 bg-brand-soft">
-          <p className="text-sm">{pc.gap_note} Before changing anything, a quick check on {title(pc.suspected_skill_id)} will confirm it.</p>
+        <Card className="sf-enter mb-5 border-brand/40 bg-brand-soft">
+          <p className="text-sm"><InlineMarkdown text={pc.gap_note} /> Before changing anything, a quick check on {title(pc.suspected_skill_id)} will confirm it.</p>
           <Link href={`/assess/${pc.group_id}`} className={`${btn} mt-3`}>Take the 2-question check <ArrowRight size={14} aria-hidden /></Link>
         </Card>
       ) : null}
@@ -113,20 +113,22 @@ export default async function LearnPage({ params }: { params: Promise<{ skillId:
         <div className="min-w-0 space-y-5">
           <Card>
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Objective</h2>
-            <p className="mt-1">{c.objective}</p>
+            <div className="mt-1"><Markdown text={c.objective} /></div>
             <h2 className="mt-4 text-sm font-semibold uppercase tracking-wide text-muted">What you need from before</h2>
-            <p className="mt-1 text-sm">{c.prerequisite_recap}</p>
+            <div className="mt-1 text-sm [&_div]:text-sm"><Markdown text={c.prerequisite_recap} /></div>
           </Card>
           {c.sections.map((s, i) => (
             <Card key={i}>
               <h2 className="text-lg font-semibold">{s.heading}</h2>
-              <Markdown text={s.body + (s.citations.length ? ` ${s.citations.map((k) => `[${k}]`).join(" ")}` : "")} citations={citations} />
+              <Markdown text={s.body} citations={citations} />
+              <Cites keys={s.citations} citations={citations} />
             </Card>
           ))}
           <Card className="border-brand/30">
             <p className="text-xs font-semibold uppercase tracking-wide text-brand">Worked example</p>
             <h2 className="mt-1 text-lg font-semibold">{c.worked_example.title}</h2>
-            <Markdown text={c.worked_example.body + (c.worked_example.citations.length ? ` ${c.worked_example.citations.map((k) => `[${k}]`).join(" ")}` : "")} citations={citations} />
+            <Markdown text={c.worked_example.body} citations={citations} />
+            <Cites keys={c.worked_example.citations} citations={citations} />
           </Card>
 
           <section>
@@ -175,5 +177,21 @@ export default async function LearnPage({ params }: { params: Promise<{ skillId:
         </aside>
       </div>
     </div>
+  );
+}
+
+/** Section-level citations, shown under the text so they never break a code block. */
+function Cites({ keys, citations }: { keys: string[]; citations: CitationTarget[] }) {
+  const found = keys.map((k) => citations.find((c) => c.key === k)).filter((c): c is CitationTarget => Boolean(c));
+  if (!found.length) return null;
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-muted">
+      Sources:
+      {found.map((c) => (
+        <a key={c.key} href={c.url} target="_blank" rel="noreferrer" title={c.title} className="rounded-full border border-line px-2 py-0.5 font-medium text-brand transition-colors hover:border-brand hover:bg-brand-soft">
+          [{c.key}] {c.title.length > 40 ? `${c.title.slice(0, 40)}…` : c.title}
+        </a>
+      ))}
+    </p>
   );
 }

@@ -84,7 +84,7 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
             <div className="mb-2 flex items-center justify-between gap-2 text-xs text-muted">
               <span>Question {i + 1} of {questions.length} · {q.skillTitle}</span>
               {r ? (
-                <span className={`inline-flex items-center gap-1 font-medium ${r.is_correct ? "text-mastered" : "text-review"}`}>
+                <span className={`sf-pop inline-flex items-center gap-1 font-medium ${r.is_correct ? "text-mastered" : "text-review"}`}>
                   {r.is_correct ? <CheckCircle2 size={14} aria-hidden /> : <XCircle size={14} aria-hidden />}
                   {q.type === "short" ? `${Math.round(r.score * 100)}% of rubric` : r.is_correct ? "Correct" : "Not quite"}
                 </span>
@@ -99,7 +99,7 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
                   return (
                     <label
                       key={oi}
-                      className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition ${
+                      className={`flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-2.5 text-sm transition-colors duration-150 ${
                         correct ? "border-mastered bg-mastered-soft" : chosen && r ? "border-review bg-review-soft" : chosen ? "border-brand bg-brand-soft" : "border-line hover:bg-surface-2"
                       }`}
                     >
@@ -133,9 +133,9 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
                 </label>
               </div>
             ) : null}
-            {hints[q.id] && !done ? <p className="mt-2 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">Hint: {hints[q.id]} <span className="text-xs opacity-80">(using a hint reduces this answer&apos;s weight)</span></p> : null}
+            {hints[q.id] && !done ? <p className="sf-enter mt-2 rounded-lg bg-brand-soft px-3 py-2 text-sm text-brand">Hint: {hints[q.id]} <span className="text-xs opacity-80">(using a hint reduces this answer&apos;s weight)</span></p> : null}
             {r ? (
-              <div className={`mt-3 rounded-xl px-3 py-2 text-sm ${r.is_correct ? "bg-mastered-soft" : "bg-review-soft"}`}>
+              <div className={`sf-enter mt-3 rounded-xl px-3 py-2 text-sm ${r.is_correct ? "bg-mastered-soft" : "bg-review-soft"}`}>
                 <Markdown text={r.feedback} />
               </div>
             ) : null}
@@ -143,12 +143,12 @@ export function QuestionForm({ courseId, groupId, questions, saved, savedAnswers
         );
       })}
       {outcome ? (
-        <div className="rounded-2xl border border-brand/30 bg-brand-soft p-4 text-sm" role="status">
+        <div className="sf-enter rounded-2xl border border-brand/30 bg-brand-soft p-4 text-sm" role="status">
           <p className="font-medium text-brand">What this means for your path</p>
           <p className="mt-1">{outcome}</p>
         </div>
       ) : null}
-      {error ? <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p> : null}
+      {error ? <p role="alert" className="sf-enter rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p> : null}
       {!done ? (
         <button className={btn} onClick={submit} disabled={!complete || pending}>{pending ? "Grading…" : submitLabel}</button>
       ) : afterSubmit !== "refresh" ? (

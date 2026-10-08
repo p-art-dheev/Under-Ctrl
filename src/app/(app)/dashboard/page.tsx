@@ -65,7 +65,7 @@ export default async function Dashboard() {
         {currentSkill && currentSkill.id !== next.skillId ? <p className="mt-3 text-sm text-muted">Current lesson: <Link className="text-brand hover:underline" href={`/learn/${currentSkill.id}`}>{currentSkill.title}</Link></p> : null}
       </Card>
 
-      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
+      <div className="sf-stagger mb-6 grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="Skills assessed" value={`${stats.assessed} / ${stats.coreSkills}`} help="Core skills with at least one scored answer. Unassessed skills are not counted as failures." />
         <Stat label="Skills mastered" value={`${stats.mastered}`} help="Score ≥ 80% with ≥ 3 answers, including 2 correct without hints." />
         <Stat label="Activities completed" value={`${stats.lessonsCompleted}`} help="Lessons marked complete. Separate from mastery." />

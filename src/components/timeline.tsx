@@ -1,5 +1,6 @@
 import { GitBranch, GitCommitHorizontal, SearchCheck, SkipForward, Sparkles } from "lucide-react";
 import type { AdaptationEvent } from "@/lib/types";
+import { InlineMarkdown } from "@/components/markdown";
 
 const ICON: Record<string, typeof Sparkles> = {
   graph_created: GitCommitHorizontal,
@@ -27,7 +28,7 @@ export function Timeline({ events, limit }: { events: AdaptationEvent[]; limit?:
   const list = [...events].reverse().slice(0, limit ?? events.length);
   if (!list.length) return <p className="text-sm text-muted">No changes yet.</p>;
   return (
-    <ol className="relative space-y-4 border-l border-line pl-5">
+    <ol className="sf-stagger relative space-y-4 border-l border-line pl-5">
       {list.map((e) => {
         const Icon = ICON[e.kind] ?? Sparkles;
         const strong = e.kind === "remediation_inserted";
@@ -37,7 +38,7 @@ export function Timeline({ events, limit }: { events: AdaptationEvent[]; limit?:
               <Icon size={13} aria-hidden />
             </span>
             <p className="text-sm font-medium">{LABEL[e.kind] ?? e.kind}{e.to_version !== e.from_version ? <span className="ml-2 text-xs font-normal text-muted">graph v{e.from_version} → v{e.to_version}</span> : null}</p>
-            <p className="text-sm text-muted">{e.reason}</p>
+            <p className="text-sm text-muted"><InlineMarkdown text={e.reason} /></p>
             <p className="mt-0.5 text-xs text-muted">
               {new Date(e.created_at).toLocaleString()}{e.evidence_attempt_ids.length ? ` · based on ${e.evidence_attempt_ids.length} answer${e.evidence_attempt_ids.length === 1 ? "" : "s"}` : ""}
             </p>

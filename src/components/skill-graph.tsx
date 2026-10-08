@@ -43,7 +43,7 @@ function SkillNode({ data }: NodeProps<Node<SkillNodeData>>) {
   const s = data.skill;
   return (
     <div
-      className={`w-[200px] rounded-xl border-2 bg-surface px-3 py-2 text-left shadow-sm ${s.kind === "remediation" ? "border-dashed" : ""} ${data.selected ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : ""}`}
+      className={`w-[200px] cursor-pointer rounded-xl border-2 bg-surface px-3 py-2 text-left shadow-sm transition-shadow duration-150 hover:shadow-md ${s.kind === "remediation" ? "border-dashed" : ""} ${data.selected ? "ring-2 ring-brand ring-offset-2 ring-offset-bg" : ""}`}
       style={{ borderColor: BORDER[s.state], opacity: s.state === "locked" ? 0.75 : 1 }}
     >
       <Handle type="target" position={Position.Top} className="!h-2 !w-2 !border-0 !bg-line" />
@@ -127,7 +127,7 @@ export function SkillGraph({ skills, version }: { skills: GraphSkill[]; version:
         </ul>
       </div>
       <aside className="lg:sticky lg:top-6 lg:self-start">
-        {sel ? <Details s={sel} byId={byId} /> : <p className="text-sm text-muted">Select a skill to see why it is in its current state.</p>}
+        {sel ? <Details key={sel.id} s={sel} byId={byId} /> : <p className="text-sm text-muted">Select a skill to see why it is in its current state.</p>}
       </aside>
     </div>
   );
@@ -144,7 +144,7 @@ function Legend() {
 
 function Details({ s, byId }: { s: GraphSkill; byId: Map<string, GraphSkill> }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-5">
+    <div className="sf-fade rounded-2xl border border-line bg-surface p-5">
       <div className="flex flex-wrap gap-2">
         <StateBadge state={s.state} label={s.stateLabel} />
         {!s.assessed && s.kind === "core" ? <UnassessedBadge /> : null}

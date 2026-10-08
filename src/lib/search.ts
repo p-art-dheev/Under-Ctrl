@@ -75,7 +75,7 @@ export const CURATED: CuratedEntry[] = [
     format: "reference",
     summary: "Standard-library module for reading and writing CSV rows, including DictReader.",
     minutes: 15,
-    keywords: ["csv", "file"],
+    keywords: ["csv", "file", "load"],
   },
   {
     title: "json — JSON encoder and decoder",
@@ -102,7 +102,7 @@ export const CURATED: CuratedEntry[] = [
     format: "tutorial",
     summary: "Getting-started tutorial on read_csv, head, info and writing data back out.",
     minutes: 15,
-    keywords: ["pandas", "csv", "dataframe", "read"],
+    keywords: ["pandas", "csv", "dataframe", "read", "load", "import", "excel"],
   },
   {
     title: "pandas: How do I select a subset of a DataFrame?",
@@ -122,6 +122,96 @@ export const CURATED: CuratedEntry[] = [
     minutes: 20,
     keywords: ["pandas", "aggregat", "statistic", "group", "summar"],
   },
+  {
+    title: "The Python Tutorial",
+    url: "https://docs.python.org/3/tutorial/index.html",
+    provider: "docs.python.org",
+    format: "documentation",
+    summary: "Official tutorial covering Python syntax, data types, control flow, functions, modules and errors, chapter by chapter.",
+    minutes: 30,
+    keywords: ["python", "syntax", "refresher"],
+  },
+  {
+    title: "Functional Programming HOWTO",
+    url: "https://docs.python.org/3/howto/functional.html",
+    provider: "docs.python.org",
+    format: "documentation",
+    summary: "Official guide to iterators, generators, comprehensions, lambda, map and filter in Python.",
+    minutes: 30,
+    keywords: ["functional", "lambda", "comprehension", "map", "generator", "iterator"],
+  },
+  {
+    title: "NumPy: the absolute basics for beginners",
+    url: "https://numpy.org/doc/stable/user/absolute_beginners.html",
+    provider: "numpy.org",
+    format: "tutorial",
+    summary: "Official beginner guide to creating NumPy arrays, shapes, indexing, and basic array operations.",
+    minutes: 30,
+    keywords: ["numpy", "array", "ndarray"],
+  },
+  {
+    title: "NumPy quickstart",
+    url: "https://numpy.org/doc/stable/user/quickstart.html",
+    provider: "numpy.org",
+    format: "tutorial",
+    summary: "Official quickstart on array creation, element-wise (vectorized) operations, broadcasting and reshaping.",
+    minutes: 30,
+    keywords: ["numpy", "vector", "broadcast", "mathematical", "reshape"],
+  },
+  {
+    title: "10 minutes to pandas",
+    url: "https://pandas.pydata.org/docs/user_guide/10min.html",
+    provider: "pandas.pydata.org",
+    format: "tutorial",
+    summary: "Official short tour of Series and DataFrame creation, viewing, selection, missing data, grouping and plotting.",
+    minutes: 25,
+    keywords: ["pandas", "series", "dataframe", "explor", "eda"],
+  },
+  {
+    title: "pandas: Working with missing data",
+    url: "https://pandas.pydata.org/docs/user_guide/missing_data.html",
+    provider: "pandas.pydata.org",
+    format: "documentation",
+    summary: "Official guide to detecting, dropping and filling missing values in pandas.",
+    minutes: 25,
+    keywords: ["clean", "missing", "null", "nan", "wrangl", "preprocess"],
+  },
+  {
+    title: "pandas: Group by: split-apply-combine",
+    url: "https://pandas.pydata.org/docs/user_guide/groupby.html",
+    provider: "pandas.pydata.org",
+    format: "documentation",
+    summary: "Official guide to groupby: splitting data into groups, aggregating and transforming them.",
+    minutes: 30,
+    keywords: ["group", "aggregat", "pivot"],
+  },
+  {
+    title: "pandas: How do I create plots in pandas?",
+    url: "https://pandas.pydata.org/docs/getting_started/intro_tutorials/04_plotting.html",
+    provider: "pandas.pydata.org",
+    format: "tutorial",
+    summary: "Getting-started tutorial on quick line, scatter and box plots straight from a DataFrame.",
+    minutes: 15,
+    keywords: ["plot", "visuali", "chart", "explor", "eda"],
+  },
+  {
+    title: "Matplotlib: Quick start guide",
+    url: "https://matplotlib.org/stable/users/explain/quick_start.html",
+    provider: "matplotlib.org",
+    format: "tutorial",
+    summary: "Official introduction to figures, axes, plotting functions, labels and styling in Matplotlib.",
+    minutes: 25,
+    keywords: ["matplotlib", "plot", "visuali", "chart", "figure"],
+  },
+  {
+    title: "An introduction to seaborn",
+    url: "https://seaborn.pydata.org/tutorial/introduction.html",
+    provider: "seaborn.pydata.org",
+    format: "tutorial",
+    summary: "Official introduction to statistical plots in seaborn built on pandas DataFrames.",
+    minutes: 20,
+    keywords: ["seaborn", "statistical", "visuali", "distribution"],
+  },
 ];
 
 export interface SourceHit {
@@ -137,9 +227,17 @@ export interface SourceHit {
   query: string | null;
 }
 
-export function curatedFor(skill: { key: string; title: string }, limit = 2): SourceHit[] {
-  const hay = `${skill.key} ${skill.title}`.toLowerCase();
-  return CURATED.map((e) => ({ e, hits: e.keywords.filter((k) => hay.includes(k)).length }))
+export function curatedFor(
+  skill: { key: string; title: string; objective?: string | null; search_query?: string | null },
+  limit = 2,
+): SourceHit[] {
+  // key and title count double, longer (more specific) keywords count more
+  const strong = `${skill.key} ${skill.title}`.toLowerCase().replace(/-/g, " ");
+  const weak = `${skill.objective ?? ""} ${skill.search_query ?? ""}`.toLowerCase();
+  return CURATED.map((e) => ({
+    e,
+    hits: e.keywords.reduce((n, k) => n + k.length * ((strong.includes(k) ? 2 : 0) + (weak.includes(k) ? 1 : 0)), 0),
+  }))
     .filter((x) => x.hits > 0)
     .sort((a, b) => b.hits - a.hits)
     .slice(0, limit)

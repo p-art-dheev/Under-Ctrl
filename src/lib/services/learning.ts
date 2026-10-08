@@ -461,8 +461,10 @@ async function retrieveResources(snap: Snapshot): Promise<Resource[]> {
       hits.length = 0;
     }
   }
-  if (hits.length === 0) {
-    for (const s of core) for (const hit of curatedFor(s)) hits.push({ skill: s, hit });
+  // every skill gets sources: curated matches fill in wherever search found nothing
+  for (const s of core) {
+    if (hits.some((h) => h.skill.id === s.id)) continue;
+    for (const hit of curatedFor(s)) hits.push({ skill: s, hit });
   }
   return hits.map(({ skill, hit }, i) => ({
     id: id(),

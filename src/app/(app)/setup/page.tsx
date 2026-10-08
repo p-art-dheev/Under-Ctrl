@@ -39,7 +39,7 @@ export default async function SetupPage() {
             const done = i < idx || stage === "done";
             const current = i === idx;
             return (
-              <li key={s.stage} className="flex items-center gap-3 text-sm">
+              <li key={s.stage} className="flex items-center gap-3 text-sm transition-colors">
                 {done ? <CheckCircle2 size={18} className="text-mastered" aria-hidden /> : current ? <Loader2 size={18} className={`text-brand ${runnable ? "animate-spin" : ""}`} aria-hidden /> : <Circle size={18} className="text-line" aria-hidden />}
                 <span className={done ? "text-muted line-through decoration-line" : current ? "font-medium" : "text-muted"}>{s.label}</span>
                 {current && waitingOnLearner ? <span className="text-xs text-brand">waiting for your answers</span> : null}
@@ -47,11 +47,11 @@ export default async function SetupPage() {
             );
           })}
         </ol>
-        <div className="mt-4"><SetupRunner key={`${stage}-${snap.questions.length}`} courseId={snap.course.id} runnable={runnable} /></div>
+        <div className="mt-4"><SetupRunner key={`${stage}-${snap.questions.length}`} courseId={snap.course.id} runnable={runnable} stage={stage} /></div>
       </Card>
 
       {waitingOnLearner ? (
-        <>
+        <div className="sf-enter">
           <h2 className="mb-1 text-lg font-semibold">{stage === "diagnostic_1" ? "Diagnostic, part 1" : "Diagnostic, part 2"}</h2>
           <p className="mb-4 text-sm text-muted">Answer honestly; guessing makes the plan worse. There are no hints here, and your answers only set the starting point.</p>
           <QuestionForm
@@ -60,7 +60,7 @@ export default async function SetupPage() {
             questions={diagGroup.map((q) => ({ id: q.id, type: q.type, prompt: q.prompt, options: q.options, allow_hints: false, skillTitle: title(q.skill_ids[0]) }))}
             submitLabel="Submit this part"
           />
-        </>
+        </div>
       ) : null}
 
       {stage === "done" ? <SkillReport snap={snap} /> : null}
@@ -75,7 +75,7 @@ function SkillReport({ snap }: { snap: Awaited<ReturnType<typeof courseContext>>
   const unsure = tested.filter((x) => x.m.score !== null && x.m.score >= 0.5 && x.m.score < 0.7);
   const untested = tested.filter((x) => x.m.score === null);
   return (
-    <Card>
+    <Card className="sf-enter">
       <h2 className="text-lg font-semibold">Your starting point</h2>
       <p className="mt-1 text-sm text-muted">From {snap.attempts.length} diagnostic answers. A few questions can&apos;t measure ability precisely, so treat this as a first estimate. Every skill starts provisional.</p>
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
