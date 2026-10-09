@@ -1,4 +1,4 @@
-\# Cognify by Under Ctrl
+# Cognify by Under Ctrl
 
 > A Gemma 4-powered adaptive learning platform that turns a learner's goal into a personalized course, tracks understanding through a persistent skill graph, and adjusts lessons when knowledge gaps emerge.
 
